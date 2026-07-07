@@ -64,3 +64,24 @@ defineProps(['config', 'guru', 'cpData']);
 .identity-table { margin-bottom: 20px; }
 .no-data-alert { text-align: center; padding: 30px; border: 1px dashed #ccc; color: #666; font-size: 14px; }
 </style>
+
+<style>
+@media print {
+  /* 1. Biarkan tabel mengalir secara natural ke halaman berikutnya */
+  table {
+    page-break-inside: auto !important;
+    width: 100% !important;
+  }
+  
+  /* 2. Cegah baris tabel terbelah di tengah-tengah teks */
+  tr, td, th {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  /* 3. Ulangi header tabel di setiap halaman baru */
+  thead {
+    display: table-header-group !important;
+  }
+}
+</style>
