@@ -13,15 +13,25 @@
       </div>
     </div>
 
-    <div class="card-box margin-top-25">
-      <div style="margin-bottom: 10px;">
-        <h3 style="margin: 0; color: #1E5631;"><i class="fa-solid fa-filter"></i> Pilih Tugas Mengajar (Plotting)</h3>
-        <p style="margin: 4px 0 0 0; color: #666; font-size: 13px;">Silakan pilih kelas dan mata pelajaran untuk menyusun KKTP.</p>
-      </div>
-      <select v-model="selectedPlot" @change="onPlotChange" class="input-atp-select" style="max-width: 500px; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
-        <option :value="null">-- Pilih Mata Pelajaran & Kelas --</option>
-        <option v-for="plot in listPlotting" :key="plot.id" :value="plot">
-          {{ plot.mapel }} - Kelas {{ plot.kelas }}
+   <div class="card-box margin-top-25 filter-card">
+      <label for="plottingSelect" class="filter-label" style="display: block; font-weight: bold; color: #1E5631; margin-bottom: 10px; font-size: 14.5px;">
+        <i class="fa-solid fa-sliders"></i> Pilih Tugas Mengajar (Plotting):
+      </label>
+      <select 
+        id="plottingSelect" 
+        v-model="selectedPlottingId" 
+        @change="handlePlottingChange" 
+        class="input-filter-select"
+        style="width: 100%; max-width: 500px; height: 45px; padding: 0 15px; font-size: 15px; border: 2px solid #689F38; border-radius: 6px; outline: none; background: white; font-weight: 500; cursor: pointer; color: #333;"
+      >
+        <option value="">-- Silakan Pilih Mapel & Kelas --</option>
+        <option 
+          v-for="plot in listPlottingRaw" 
+          :key="plot.id" 
+          :value="plot.id"
+        >
+          {{ plot.mapel || plot.nama_mapel }} 
+          ({{ formatArrayKelas(plot.list_kelas || plot.kelas || []) }})
         </option>
       </select>
     </div>
@@ -114,16 +124,16 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import api from '../../services/api'; // Sesuaikan path ini dengan struktur folder agan
+import api from '../../services/api'; 
 import Swal from 'sweetalert2';
 
 const route = useRoute();
 const router = useRouter();
 
-const listPlotting = ref([]);
-const selectedPlot = ref(null);
+// Variabel disamakan dengan AtpView
+const listPlottingRaw = ref([]);
+const selectedPlottingId = ref(''); 
 
-// Ambil ID dari query URL (Sama seperti logika di AtpView)
 const mapelId = ref(route.query.mapel_id || '');
 const kelasId = ref(route.query.kelas_id || '');
 
@@ -132,7 +142,6 @@ const isLoading = ref(false);
 const isSaving = ref(false);
 const formKKTP = ref({});
 
-// Toast SweetAlert Seragam
 const Toast = Swal.mixin({
   toast: true,
   position: 'top-end',
@@ -144,17 +153,24 @@ const Toast = Swal.mixin({
   iconColor: '#FBC02D'
 });
 
+// Helper format array kelas persis seperti AtpView
+const formatArrayKelas = (arr) => {
+  if (!arr || arr.length === 0) return 'Tidak ada kelas';
+  if (typeof arr === 'string') return arr; 
+  return arr.map(k => k.nama_kelas || k.kelas || k.nama).join(', ');
+};
+
 const muatPlottingGuru = async () => {
   try {
-    const res = await api.get('/guru/plotting');
-    listPlotting.value = res.data.data || res.data;
+    // Tambahkan parameter per_page: 100 agar semua data termuat
+    const res = await api.get('/guru/plotting', { params: { per_page: 100 } });
+    listPlottingRaw.value = res.data.data || res.data || [];
 
-    if (mapelId.value && kelasId.value) {
-      // 🟢 PERBAIKAN DI SINI: Cocokkan kelasId dari URL dengan p.id (ID Plotting)
-      const matched = listPlotting.value.find(p => p.mapel_id === mapelId.value && p.id === kelasId.value);
+    if (kelasId.value) {
+      const matched = listPlottingRaw.value.find(p => String(p.id) === String(kelasId.value));
       if (matched) {
-        selectedPlot.value = matched;
-        onPlotChange(false);
+        selectedPlottingId.value = matched.id;
+        handlePlottingChange(false);
       }
     }
   } catch (error) {
@@ -162,24 +178,30 @@ const muatPlottingGuru = async () => {
   }
 };
 
-const onPlotChange = (updateUrl = true) => {
-  if (selectedPlot.value) {
-    mapelId.value = selectedPlot.value.mapel_id;
+const handlePlottingChange = (updateUrl = true) => {
+  if (!selectedPlottingId.value) {
+    mapelId.value = '';
+    kelasId.value = '';
+    listCP.value = [];
+    return;
+  }
+
+  const selectedPlot = listPlottingRaw.value.find(p => String(p.id) === String(selectedPlottingId.value));
+  
+  if (selectedPlot) {
+    mapelId.value = selectedPlot.mapel_id || selectedPlot.id_mapel;
+    kelasId.value = selectedPlot.id; 
     
-    // 🟢 PERBAIKAN DI SINI: Gunakan .id (ID Plotting master), bukan .kelas_id asli
-    kelasId.value = selectedPlot.value.id; 
-    
-    if (updateUrl) {
+    // Sinkronkan ke URL
+    if (updateUrl !== false) {
       router.replace({ query: { mapel_id: mapelId.value, kelas_id: kelasId.value } });
     }
 
     muatDataKKTP();
-  } else {
-    mapelId.value = '';
-    kelasId.value = '';
-    listCP.value = [];
   }
 };
+
+// ... sisa fungsi kembaliKeDashboard, muatDataKKTP, simpanSemuaKKTP, dan onMounted tetap biarkan seperti aslinya
 
 const kembaliKeDashboard = () => {
   router.push({ name: 'guru.dashboard' });
