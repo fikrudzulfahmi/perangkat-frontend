@@ -1,5 +1,9 @@
 import { createApp } from 'vue'
-import './style.css'
 import App from './App.vue'
+import router from './router' // 1. Import router-nya
 
-createApp(App).mount('#app')
+const app = createApp(App)
+
+app.use(router) // 2. Gunakan router-nya
+
+app.mount('#app')
