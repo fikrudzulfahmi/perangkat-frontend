@@ -25,7 +25,8 @@
           <select v-model="selectedPlotting" @change="onPlottingChange" class="input-text-select">
             <option value="">-- Tampilkan Semua Mata Pelajaran --</option>
             <option v-for="plot in listPlotting" :key="plot.id" :value="plot.id">
-              {{ plot.mapel }} - Kelas {{ plot.nama_kelas_gabungan }}
+              {{ plot.mapel || plot.nama_mapel }} 
+              ({{ formatArrayKelas(plot.list_kelas || plot.kelas || []) }})
             </option>
           </select>
         </div>
@@ -225,19 +226,20 @@ const Toast = Swal.mixin({
   background: '#1E5631', color: '#FFE0B2', iconColor: '#FBC02D'
 });
 
+const formatArrayKelas = (arr) => {
+  if (!arr || arr.length === 0) return 'Tidak ada kelas';
+  if (typeof arr === 'string') return arr; 
+  return arr.map(k => k.nama_kelas || k.kelas || k.nama).join(', ');
+};
+
 const kembaliKeDashboard = () => router.push({ name: 'guru.dashboard' });
 
 // 1. Muat Tugas Mengajar (Plotting) Guru - Logika dipinjam dari BankSoalView
 const muatPlotting = async () => {
   try {
-    const res = await api.get('/guru/plotting');
-    const rawData = res.data.data || res.data;
-    listPlotting.value = rawData.map(plot => ({
-      ...plot,
-      nama_kelas_gabungan: plot.list_kelas && plot.list_kelas.length > 0 
-        ? plot.list_kelas.map(k => k.nama_kelas).join(', ') 
-        : 'Belum ada kelas'
-    }));
+    // TAMBAHKAN PARAMETER per_page: 100 AGAR SEMUA DATA DROPDOWN TAMPIL
+    const res = await api.get('/guru/plotting', { params: { per_page: 100 } });
+    listPlotting.value = res.data.data || res.data || [];
   } catch (error) {
     console.error("Gagal muat plotting:", error);
   }
@@ -255,14 +257,15 @@ const onPlottingChange = async () => {
   const plotAktif = listPlotting.value.find(p => p.id === selectedPlotting.value);
   if (plotAktif) {
     try {
-      // Memanfaatkan endpoint /guru/kktp yang sudah terbukti menghasilkan list_cp dan list_tp
+      // Menggunakan properti mapel_id atau id_mapel sebagai fallback aman
+      const targetMapelId = plotAktif.mapel_id || plotAktif.id_mapel;
+      
       const res = await api.get('/guru/kktp', {
-        params: { mapel_id: plotAktif.mapel_id, kelas_id: plotAktif.id }
+        params: { mapel_id: targetMapelId, kelas_id: plotAktif.id }
       });
       const payload = res.data.data || {};
       const dataCP = payload.list_cp || [];
       
-      // Kumpulkan semua list_tp ke dalam satu state linear
       let tempTp = [];
       dataCP.forEach(cp => {
         if (cp.list_tp) {
