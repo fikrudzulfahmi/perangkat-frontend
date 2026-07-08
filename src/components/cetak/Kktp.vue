@@ -44,10 +44,10 @@
             <th style="width: 4%; text-align: center;">No.</th>
             <th style="width: 8%; text-align: center;">Kode TP</th>
             <th style="width: 40%;">Kompetensi Tujuan Pembelajaran (TP)</th>
-            <th style="width: 12%; text-align: center;">Baru Berkembang<br>(0-60)</th>
-            <th style="width: 12%; text-align: center;">Layak<br>(61-70)</th>
-            <th style="width: 12%; text-align: center;">Cakap<br>(71-80)</th>
-            <th style="width: 12%; text-align: center;">Mahir<br>(81-100)</th>
+            <th style="width: 12%; text-align: center;">Baru Berkembang<br>(0-65)</th>
+            <th style="width: 12%; text-align: center;">Layak<br>(66-75)</th>
+            <th style="width: 12%; text-align: center;">Cakap<br>(76-85)</th>
+            <th style="width: 12%; text-align: center;">Mahir<br>(86-100)</th>
           </tr>
         </thead>
         <tbody>
