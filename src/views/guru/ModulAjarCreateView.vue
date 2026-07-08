@@ -134,26 +134,47 @@
 
         <div class="section-header margin-top-25">
           <h3><i class="fa-solid fa-list-ol"></i> Skenario Kegiatan Pembelajaran</h3>
-          <button type="button" @click="tambahKegiatan" class="btn-add-small">+ Tambah Tahapan</button>
-        </div>
-        
-        <div v-for="(kegiatan, index) in form.kegiatan_pembelajaran" :key="index" class="kegiatan-row">
-          <div class="kegiatan-header">Tahap {{ index + 1 }}</div>
-          <div class="form-group">
-            <input v-model="kegiatan.tahap" type="text" class="input-text" placeholder="Pendahuluan/Inti/Penutup" required />
-          </div>
-          <div class="form-group">
-            <input v-model="kegiatan.durasi" type="text" class="input-text" placeholder="Durasi (Mnt)" required />
-          </div>
-          <div class="form-group" style="flex-grow: 2;">
-            <input v-model="kegiatan.aktivitas" type="text" class="input-text" placeholder="Deskripsi aktivitas guru dan siswa..." required />
-          </div>
-          <button type="button" @click="hapusKegiatan(index)" class="btn-icon btn-delete" v-if="form.kegiatan_pembelajaran.length > 1">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+          <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">
+            Isi aktivitas dengan poin-poin. Anda cukup menekan tombol <strong>Enter</strong> untuk membuat baris baru.
+          </p>
         </div>
 
+        <div class="kegiatan-container">
+          <div v-for="(kegiatan, index) in form.kegiatan_pembelajaran" :key="index" class="kegiatan-box">
+            
+            <div class="kegiatan-header">
+              <span class="badge-tahap-index">Tahap {{ index + 1 }}</span>
+              <button @click.prevent="hapusKegiatan(index)" class="btn-hapus-kegiatan" title="Hapus Tahap Ini">
+                <i class="fa-solid fa-trash-can"></i> Hapus
+              </button>
+            </div>
 
+            <div class="form-grid" style="margin-top: 15px;">
+              <div class="form-group">
+                <label>Nama Tahapan <span class="text-danger">*</span></label>
+                <input v-model="kegiatan.tahap" type="text" class="input-text" required placeholder="Contoh: Pendahuluan">
+              </div>
+              <div class="form-group">
+                <label>Alokasi Waktu <span class="text-danger">*</span></label>
+                <input v-model="kegiatan.durasi" type="text" class="input-text" required placeholder="Contoh: 15 Menit">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+              <label>Langkah-Langkah Aktivitas <span class="text-danger">*</span></label>
+              <textarea 
+                v-model="kegiatan.aktivitas" 
+                class="input-textarea" 
+                rows="5" 
+                required 
+                placeholder="1. Guru membuka kelas...&#10;2. Siswa dibagi kelompok...&#10;3. Dst..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+<button @click.prevent="tambahKegiatan" class="btn-tambah-kegiatan">
+          <i class="fa-solid fa-plus"></i> Tambah Tahapan Kegiatan Baru
+        </button>
         <div class="section-header margin-top-25">
           <h3><i class="fa-solid fa-file-signature"></i> Hubungkan Soal Asesmen (Dari Bank Soal)</h3>
         </div>
@@ -229,11 +250,12 @@ const form = ref({
   tujuan_pembelajaran_ids: [],
   bank_soal_ids: [], // 🟢 IDs soal yang diceklis akan masuk ke sini untuk mengisi tabel pivot `modul_ajar_soals`
   kegiatan_pembelajaran: [
-    { tahap: 'Pendahuluan', durasi: '15 Menit', aktivitas: '' },
-    { tahap: 'Kegiatan Inti', durasi: '60 Menit', aktivitas: '' },
-    { tahap: 'Penutup', durasi: '15 Menit', aktivitas: '' }
+    { tahap: 'Pendahuluan', durasi: '', aktivitas: '' },
+    { tahap: 'Kegiatan Inti', durasi: '', aktivitas: '' },
+    { tahap: 'Penutup', durasi: '', aktivitas: '' }
   ]
 });
+
 
 const Toast = Swal.mixin({
   toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
@@ -439,6 +461,71 @@ onMounted(() => {
   border-radius: 6px;
   border: 1px dashed #ffb74d;
   font-size: 13px;
+}
+
+.kegiatan-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 15px;
+}
+.kegiatan-box {
+  border: 1px solid #c8e6c9;
+  background-color: #f9fbe7;
+  padding: 20px;
+  border-radius: 8px;
+  position: relative;
+}
+.kegiatan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed #a5d6a7;
+  padding-bottom: 10px;
+}
+.badge-tahap-index {
+  background-color: #1E5631;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+.btn-hapus-kegiatan {
+  background: none;
+  border: none;
+  color: #d9534f;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.btn-hapus-kegiatan:hover {
+  text-decoration: underline;
+}
+.btn-tambah-kegiatan {
+  margin-top: 15px;
+  background-color: #fff;
+  border: 2px dashed #689F38;
+  color: #1E5631;
+  padding: 10px 15px;
+  width: 100%;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.btn-tambah-kegiatan:hover {
+  background-color: #e8f5e9;
+}
+.input-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
 }
 
 .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f9fbe7; padding: 15px; border-radius: 6px; border: 1px solid #c5e1a5; }

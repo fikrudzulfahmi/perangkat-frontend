@@ -99,6 +99,11 @@ const routes = [
                 name: 'guru.modul-ajar.create',
                 component: () => import('../views/guru/ModulAjarCreateView.vue')
             },
+            {
+                path: '/guru/modul-ajar/:id/edit', // :id untuk menangkap ID modul
+                name: 'guru.modul-ajar.edit',
+                component: () => import('../views/guru/ModulAjarEditView.vue') // Pastikan folder/path-nya sesuai
+            },
             // 🟢 (Opsional sekalian) Tambahkan rute untuk halaman Edit nantinya
 
             {
@@ -133,6 +138,7 @@ const routes = [
                 name: 'guru.cetak-perangkat',
                 component: () => import('../views/guru/CetakPerangkat.vue') // 🟢 Jalur file utama cetak perangkat guru
             },
+
         ]
     }
 ]
