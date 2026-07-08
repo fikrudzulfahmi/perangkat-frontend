@@ -193,56 +193,45 @@
           </button>
         </div>
 
+        <!-- DIMULAI BAGIAN PENYESUAIAN BANK SOAL YANG SAMA DENGAN CREATE -->
         <div class="section-header margin-top-25">
-          <h3><i class="fa-solid fa-file-signature"></i> Tautkan Asesmen / Instrumen Soal</h3>
-          <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">
-            Pilih butir soal dari Bank Soal yang akan digunakan sebagai alat ukur/asesmen pada modul ajar ini.
-          </p>
+          <h3><i class="fa-solid fa-file-signature"></i> Hubungkan Soal Asesmen (Dari Bank Soal)</h3>
         </div>
-
-        <div class="soal-selection-box margin-top-15">
-          <div v-if="opsiSoal.length === 0" style="padding: 20px; text-align: center; color: #777;">
-            Belum ada data soal di Bank Soal. Silakan buat soal terlebih dahulu di menu Bank Soal.
-          </div>
-          <table v-else class="table-soal">
+        <div class="soal-selection-box">
+          <table class="table-soal" v-if="opsiSoal.length > 0">
             <thead>
               <tr>
-                <th width="10%">Pilih</th>
-                <th width="15%">Jenis Soal</th>
-                <th width="75%">Pertanyaan / Soal</th>
+                <th width="50">Pilih</th>
+                <th width="120">Jenis Asesmen</th>
+                <th width="120">Kode TP</th> 
+                <th>Pertanyaan</th>
+                <th width="100">Kesulitan</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="soal in opsiSoal" :key="soal.id">
                 <td style="text-align: center;">
-                  <button v-if="!form.bank_soal_ids.includes(soal.id)" @click.prevent="pilihSoal(soal)" class="btn-add-small">
-                    <i class="fa-solid fa-plus"></i> Tautkan
-                  </button>
-                  <span v-else style="color: #689F38; font-weight: bold;"><i class="fa-solid fa-check"></i> Ditautkan</span>
+                  <input type="checkbox" :value="soal.id" v-model="form.bank_soal_ids" />
                 </td>
+                <td><span class="badge-jenis">{{ soal.jenis_asesmen || soal.tipe_soal }}</span></td>
+                
                 <td>
-                  <span class="badge-jenis">{{ soal.tipe_soal }}</span><br>
-                  <span class="badge-level" :class="soal.tingkat_kesulitan?.toLowerCase()" style="margin-top:4px; display:inline-block;">{{ soal.tingkat_kesulitan }}</span>
+                  <span v-if="soal.tp_id && getKodeTp(soal.tp_id) !== '-'" class="badge-kode-tp">
+                    [{{ getKodeTp(soal.tp_id) }}]
+                  </span>
+                  <span v-else class="text-muted">-</span>
                 </td>
-                <td>
-                  <div v-html="soal.pertanyaan" class="text-left" style="font-size: 13px; color: #444; max-height: 80px; overflow: hidden;"></div>
-                </td>
+
+                <td class="text-left"><div v-html="soal.pertanyaan" style="font-size: 13px; color: #444; max-height: 80px; overflow: hidden;"></div></td>
+                <td><span class="badge-level" :class="soal.tingkat_kesulitan?.toLowerCase()">{{ soal.tingkat_kesulitan }}</span></td>
               </tr>
             </tbody>
           </table>
+          <p v-else class="text-muted" style="padding: 10px;">
+            Belum ada data di Bank Soal untuk mata pelajaran ini. Silakan isi Bank Soal terlebih dahulu agar bisa dipilih di sini.
+          </p>
         </div>
-
-        <div v-if="listModulPilihan.length > 0" class="margin-top-15">
-          <strong>Soal Terpilih: {{ listModulPilihan.length }} Soal</strong>
-          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
-            <div v-for="terpilih in listModulPilihan" :key="terpilih.id" style="background: #f9fbe7; border: 1px solid #c5e1a5; padding: 8px 12px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 10px;">
-               <span v-html="terpilih.pertanyaan.substring(0, 30) + '...'"></span>
-               <button @click.prevent="hapusSoal(terpilih.id)" style="background: none; border: none; color: #d9534f; cursor: pointer;">
-                 <i class="fa-solid fa-xmark"></i>
-               </button>
-            </div>
-          </div>
-        </div>
+        <!-- AKHIR BAGIAN PENYESUAIAN BANK SOAL -->
 
         <div class="action-footer margin-top-25">
           <button @click="batal" type="button" class="btn-cancel">Batal</button>
@@ -267,12 +256,13 @@ import Swal from 'sweetalert2';
 const router = useRouter();
 const route = useRoute();
 
-const modulId = ref(route.params.id); // Tangkap ID dari URL
+const modulId = ref(route.params.id); 
 const isSaving = ref(false);
-const isLoadingData = ref(true); // State loading form
+const isLoadingData = ref(true); 
+
 const listCp = ref([]);
 const opsiSoal = ref([]);
-const listModulPilihan = ref([]);
+const opsiTp = ref([]); // Ditambahkan untuk menyimpan list TP
 
 const daftarProfilPancasila = [
   'Beriman, Bertakwa kepada Tuhan YME, dan Berakhlak Mulia',
@@ -305,13 +295,18 @@ const form = ref({
   plotting_id: ''
 });
 
-// 1. Fungsi Menarik Data Modul Lama
+// Fungsi getKodeTp sesuai dengan file Create
+const getKodeTp = (tpId) => {
+  if (!tpId) return '-';
+  const tpDitemukan = opsiTp.value.find(tp => tp.id === tpId);
+  return tpDitemukan ? tpDitemukan.kode_tp : '-';
+};
+
 const muatDetailModul = async () => {
   try {
     const res = await api.get(`/guru/modul-ajar/${modulId.value}`);
     const dataLama = res.data.data || res.data;
 
-    // Isi variabel form dengan data dari database
     form.value.bab_atau_materi = dataLama.bab_atau_materi || '';
     form.value.pertemuan_ke = dataLama.pertemuan_ke || '';
     form.value.alokasi_waktu = dataLama.alokasi_waktu || '';
@@ -324,7 +319,6 @@ const muatDetailModul = async () => {
     form.value.sarana_prasarana = dataLama.sarana_prasarana || '';
     form.value.plotting_id = dataLama.plotting_id;
 
-    // Data Relasi / Array
     if (dataLama.tujuan_pembelajarans) {
       form.value.tujuan_pembelajaran_ids = dataLama.tujuan_pembelajarans.map(tp => tp.id);
     }
@@ -343,10 +337,8 @@ const muatDetailModul = async () => {
 
     if (dataLama.bank_soals) {
       form.value.bank_soal_ids = dataLama.bank_soals.map(s => s.id);
-      listModulPilihan.value = dataLama.bank_soals;
     }
 
-    // Setelah tahu plotting_id-nya, kita panggil KKTP & Soalnya
     const mapelId = dataLama.plotting ? dataLama.plotting.mapel_id : null;
     await muatDataPendukung(form.value.plotting_id, mapelId);
 
@@ -359,18 +351,38 @@ const muatDetailModul = async () => {
   }
 };
 
-// 2. Fungsi Menarik Data KKTP & Bank Soal
 const muatDataPendukung = async (plottingId, mapelId) => {
   if (!plottingId) return;
   try {
     if (mapelId) {
       const resKktp = await api.get('/guru/kktp', { params: { mapel_id: mapelId, kelas_id: plottingId } });
       const payload = resKktp.data.data || {};
-      listCp.value = payload.list_cp || [];
+      const dataCP = payload.list_cp || [];
+      listCp.value = dataCP;
+
+      // Menyimpan data TP agar `getKodeTp` bisa membaca kodenya
+      let tempTp = [];
+      dataCP.forEach(cp => {
+        if (cp.list_tp) tempTp.push(...cp.list_tp);
+      });
+      opsiTp.value = tempTp;
     }
 
-    const resSoal = await api.get('/guru/bank-soal', { params: { page: 1 } }); 
-    opsiSoal.value = resSoal.data.data || [];
+    // Mengambil bank soal menggunakan limit paginasi yang sama dengan create
+    const resSoal = await api.get('/guru/bank-soal', { 
+      params: { 
+        page: 1,
+        plotting_id: plottingId, // Filter agar tidak nyasar ke mapel lain
+        per_page: 100 
+      } 
+    }); 
+    
+    // Penanganan respons array dari Laravel
+    if (resSoal.data.data && Array.isArray(resSoal.data.data.data)) {
+      opsiSoal.value = resSoal.data.data.data; 
+    } else {
+      opsiSoal.value = resSoal.data.data || []; 
+    }
   } catch (error) {
     console.error("Gagal muat data pendukung:", error);
   }
@@ -394,19 +406,6 @@ const hapusKegiatan = (index) => {
   }
 };
 
-const pilihSoal = (soal) => {
-  if (!form.value.bank_soal_ids.includes(soal.id)) {
-    form.value.bank_soal_ids.push(soal.id);
-    listModulPilihan.value.push(soal);
-  }
-};
-
-const hapusSoal = (soalId) => {
-  form.value.bank_soal_ids = form.value.bank_soal_ids.filter(id => id !== soalId);
-  listModulPilihan.value = listModulPilihan.value.filter(s => s.id !== soalId);
-};
-
-// 3. Simpan Perubahan (Menggunakan PUT)
 const simpanModul = async () => {
   if (form.value.tujuan_pembelajaran_ids.length === 0) {
     Swal.fire('Peringatan', 'Minimal pilih 1 Tujuan Pembelajaran (TP)', 'warning');
@@ -416,8 +415,6 @@ const simpanModul = async () => {
   isSaving.value = true;
   try {
     const payload = { ...form.value };
-    
-    // GANTI METHOD POST MENJADI PUT
     await api.put(`/guru/modul-ajar/${modulId.value}`, payload);
     
     Swal.fire({ icon: 'success', title: 'Berhasil Disimpan!', text: 'Perubahan Modul Ajar berhasil disimpan.' });
@@ -502,6 +499,7 @@ onMounted(() => {
 .input-text, .input-textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-family: inherit; font-size: 14px; }
 .input-text:focus, .input-textarea:focus { border-color: #689F38; outline: none; box-shadow: 0 0 5px rgba(104,159,56,0.3); }
 .text-danger { color: red; }
+.text-muted { color: #888; font-size: 13px; }
 
 /* Grouping TP */
 .tp-selection-container { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
@@ -532,18 +530,17 @@ onMounted(() => {
 .btn-tambah-kegiatan { margin-top: 15px; background-color: #fff; border: 2px dashed #689F38; color: #1E5631; padding: 10px 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
 .btn-tambah-kegiatan:hover { background-color: #e8f5e9; }
 
-/* Styling Pilihan Soal */
+/* Styling Pilihan Soal (Disesuaikan dengan Create) */
 .soal-selection-box { border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; background: #fff; max-height: 300px; overflow-y: auto; }
 .table-soal { width: 100%; border-collapse: collapse; font-size: 13px; }
 .table-soal th { background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold; text-align: left; }
 .table-soal td { padding: 10px; border-bottom: 1px solid #eee; }
 .text-left { text-align: left; }
 .badge-jenis { background: #e3f2fd; color: #1565c0; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
-.badge-level { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; text-transform: capitalize; }
+.badge-level { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; text-transform: capitalize; background-color: #689F38; }
 .badge-level.mudah { background-color: #4caf50; }
 .badge-level.sedang { background-color: #ff9800; }
 .badge-level.sulit { background-color: #f44336; }
-.btn-add-small { background: #e3f2fd; color: #1565c0; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; }
 
 /* Buttons Footer */
 .action-footer { display: flex; justify-content: flex-end; gap: 15px; border-top: 1px solid #eee; padding-top: 20px; }
