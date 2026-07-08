@@ -89,25 +89,24 @@
                     max="100" 
                     class="input-kktp-num" 
                   />
-                  <span class="persen-badge">%</span>
                 </div>
               </td>
               <td>
                 <div class="interval-preview-box" v-if="formKKTP[tp.id]">
                   <div class="interval-row item-remedial">
-                    <span class="range">0% - 40%</span>
-                    <span class="desc">Belum tuntas, remedial seluruh bagian.</span>
+                    <span class="range">0 - 65</span>
+                    <span class="desc"><strong>Baru Berkembang:</strong> Belum tuntas, remedial seluruh bagian.</span>
                   </div>
                   <div class="interval-row item-remedial">
-                    <span class="range">41% - {{ formKKTP[tp.id].target_nilai - 1 }}%</span>
-                    <span class="desc">Belum tuntas, remedial di bagian tertentu.</span>
+                    <span class="range">66 - 75</span>
+                    <span class="desc"><strong>Layak:</strong> Belum tuntas, remedial di bagian tertentu.</span>
                   </div>
                   <div class="interval-row item-tuntas">
-                    <span class="range">{{ formKKTP[tp.id].target_nilai }}% - 85%</span>
+                    <span class="range">76 - 85</span>
                     <span class="desc"><strong>Cakap:</strong> Mencapai target standar.</span>
                   </div>
                   <div class="interval-row item-mahir">
-                    <span class="range">86% - 100%</span>
+                    <span class="range">86 - 100</span>
                     <span class="desc"><strong>Mahir:</strong> Pemahaman mendalam (Deep).</span>
                   </div>
                 </div>
