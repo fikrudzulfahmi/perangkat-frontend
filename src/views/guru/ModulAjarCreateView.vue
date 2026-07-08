@@ -178,13 +178,13 @@
         <div class="section-header margin-top-25">
           <h3><i class="fa-solid fa-file-signature"></i> Hubungkan Soal Asesmen (Dari Bank Soal)</h3>
         </div>
-        <div class="soal-selection-box">
+<div class="soal-selection-box">
           <table class="table-soal" v-if="opsiSoal.length > 0">
             <thead>
               <tr>
                 <th width="50">Pilih</th>
                 <th width="120">Jenis Asesmen</th>
-                <th>Pertanyaan</th>
+                <th width="120">Kode TP</th> <th>Pertanyaan</th>
                 <th width="100">Kesulitan</th>
               </tr>
             </thead>
@@ -194,6 +194,14 @@
                   <input type="checkbox" :value="soal.id" v-model="form.bank_soal_ids" />
                 </td>
                 <td><span class="badge-jenis">{{ soal.jenis_asesmen }}</span></td>
+                
+                <td>
+                  <span v-if="soal.tp_id && getKodeTp(soal.tp_id) !== '-'" class="badge-kode-tp">
+                    [{{ getKodeTp(soal.tp_id) }}]
+                  </span>
+                  <span v-else class="text-muted">-</span>
+                </td>
+
                 <td class="text-left">{{ soal.pertanyaan }}</td>
                 <td><span class="badge-level">{{ soal.tingkat_kesulitan }}</span></td>
               </tr>
@@ -267,33 +275,48 @@ const tambahKegiatan = () => form.value.kegiatan_pembelajaran.push({ tahap: '', 
 const hapusKegiatan = (index) => form.value.kegiatan_pembelajaran.splice(index, 1);
 
 // Ambil data TP & Daftar Soal
+const getKodeTp = (tpId) => {
+  if (!tpId) return '-';
+  const tpDitemukan = opsiTp.value.find(tp => tp.id === tpId);
+  return tpDitemukan ? tpDitemukan.kode_tp : '-';
+};
+
+// 2. Fungsi untuk memuat data pendukung
 const muatDataPendukung = async () => {
   if (!plottingId.value || !mapelId.value) return;
+  
   try {
-    // 1. Ambil list TP via endpoint KKTP
+    // Ambil list TP via endpoint KKTP
     const resKktp = await api.get('/guru/kktp', { params: { mapel_id: mapelId.value, kelas_id: plottingId.value } });
     const payload = resKktp.data.data || {};
     
     const dataCP = payload.list_cp || [];
-
-    // 👇 INI BARIS YANG HILANG: Masukkan data ke variabel listCp agar dibaca oleh HTML!
     listCp.value = dataCP; 
 
-    // (Opsional) Jika variabel opsiTp masih Anda butuhkan di fungsi lain, biarkan saja:
+    // Simpan list_tp ke dalam opsiTp agar bisa dicari oleh getKodeTp()
     let tempTp = [];
     dataCP.forEach(cp => {
       if (cp.list_tp) tempTp.push(...cp.list_tp);
     });
     opsiTp.value = tempTp;
 
-    // 2. Ambil list Soal yang sudah ada di Bank Soal
-   const resSoal = await api.get('/guru/bank-soal', { 
-  params: { 
-    page: 1,
-    plotting_id: plottingId.value // 🟢 KIRIMKAN PARAMETER INI KE BACKEND
-  } 
-});
-    opsiSoal.value = resSoal.data.data || [];
+    // Ambil list Soal yang sudah difilter
+    const resSoal = await api.get('/guru/bank-soal', { 
+      params: { 
+        page: 1,
+        plotting_id: plottingId.value, // Filter mapel/plotting ke Laravel
+        per_page: 100                  // Ambil 100 data
+      } 
+    });
+
+    // 🟢 PENANGANAN PAGINASI LARAVEL YANG LEBIH AMAN
+    if (resSoal.data.data && Array.isArray(resSoal.data.data.data)) {
+      // Jika Laravel mereturn paginate()
+      opsiSoal.value = resSoal.data.data.data; 
+    } else {
+      // Jika Laravel mereturn get() biasa
+      opsiSoal.value = resSoal.data.data || []; 
+    }
 
   } catch (error) {
     console.error("Gagal muat data pendukung:", error);
