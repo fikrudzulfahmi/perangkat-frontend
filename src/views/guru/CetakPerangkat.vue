@@ -165,6 +165,10 @@
           <Pembiasaan :config="settingCetak" :guru="dataGuruDynamic" :data="dataPembiasaan" />
         </section>
 
+        <section v-if="showPart.kaldik" class="page-a4 break-before">
+          <Kaldik :data="dataKaldikRpe" />
+        </section>
+
         <section v-if="showPart.sekat3" class="page-a4 break-before">
           <div class="sekat-divider">
             <h1>BUKU KERJA III</h1>
@@ -218,6 +222,7 @@ import KodeEtik from '../../components/cetak/KodeEtik.vue';
 import IkrarGuru from '../../components/cetak/IkrarGuru.vue';
 import TataTertib from '../../components/cetak/TataTertib.vue';
 import Pembiasaan from '../../components/cetak/Pembiasaan.vue';
+import Kaldik from '../../components/cetak/Kaldik.vue';
 
 const listPloting = ref([]);
 const selectedPloting = ref('');
@@ -237,6 +242,7 @@ const dataKodeEtik = ref(null);
 const dataIkrarGuru = ref(null);
 const dataTataTertib = ref(null);
 const dataPembiasaan = ref(null);
+const dataKaldikRpe = ref([]);
 
 const settingCetak = ref({
   nama_sekolah: 'SMK ISLAM 1 BLITAR',
@@ -414,6 +420,11 @@ const handlePlotingChange = async () => {
       });
       dataPembiasaan.value = resPembiasaan.data?.data || null;
 
+      const resKaldikRpe = await api.get('/guru/kaldik-rpe', {
+        params: { tahun_pelajaran_id: activePlot.tahun_pelajaran_id } 
+      });
+      dataKaldikRpe.value = resKaldikRpe.data?.data || [];
+
     } catch (error) {
       console.error("Gagal mengambil data riil CP / ATP:", error);
       dataCp.value = [];
@@ -424,6 +435,7 @@ const handlePlotingChange = async () => {
       dataIkrarGuru.value = null;
       dataTataTertib.value = null;
       dataPembiasaan.value = null;
+      dataKaldikRpe.value = [];
     }
   
   }

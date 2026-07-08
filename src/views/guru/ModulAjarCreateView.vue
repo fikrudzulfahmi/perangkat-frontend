@@ -287,7 +287,12 @@ const muatDataPendukung = async () => {
     opsiTp.value = tempTp;
 
     // 2. Ambil list Soal yang sudah ada di Bank Soal
-    const resSoal = await api.get('/guru/bank-soal', { params: { page: 1 } }); 
+   const resSoal = await api.get('/guru/bank-soal', { 
+  params: { 
+    page: 1,
+    plotting_id: plottingId.value // 🟢 KIRIMKAN PARAMETER INI KE BACKEND
+  } 
+});
     opsiSoal.value = resSoal.data.data || [];
 
   } catch (error) {
