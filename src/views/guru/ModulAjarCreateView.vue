@@ -81,15 +81,56 @@
 
         <div class="section-header margin-top-25">
           <h3><i class="fa-solid fa-bullseye"></i> Target Tujuan Pembelajaran (TP)</h3>
+          <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">
+            Centang Tujuan Pembelajaran (TP) yang akan diajarkan pada modul ini. Anda dapat memilih lebih dari satu TP.
+          </p>
         </div>
-        <div class="checkbox-grid">
-          <div v-for="tp in opsiTp" :key="tp.id" class="checkbox-item">
-            <input type="checkbox" :id="'tp_'+tp.id" :value="tp.id" v-model="form.tujuan_pembelajaran_ids">
-            <label :for="'tp_'+tp.id"><strong>[{{ tp.kode_tp }}]</strong> {{ tp.deskripsi }}</label>
+        
+        <div class="tp-selection-container">
+          
+          <div v-if="listCp.length === 0" class="empty-state-small">
+            Memuat data Elemen & TP, atau data tidak tersedia...
           </div>
-          <p v-if="opsiTp.length === 0" class="text-muted">Tidak ada data TP untuk mata pelajaran ini.</p>
+
+          <div v-for="cp in listCp" :key="cp.id" class="cp-group-card">
+            
+            <div class="cp-header">
+              <i class="fa-solid fa-layer-group"></i> 
+              <strong>Elemen: {{ cp.elemen || cp.deskripsi }}</strong>
+            </div>
+
+            <div class="checkbox-grid">
+              <div v-for="tp in cp.list_tp" :key="tp.id" class="checkbox-item">
+                <input 
+                  type="checkbox" 
+                  :id="'tp_' + tp.id" 
+                  :value="tp.id" 
+                  v-model="form.tujuan_pembelajaran_ids"
+                >
+                <label :for="'tp_' + tp.id">
+                  <span class="badge-kode-tp">[{{ tp.kode_tp }}]</span> {{ tp.deskripsi }}
+                </label>
+              </div>
+              
+              <div v-if="!cp.list_tp || cp.list_tp.length === 0" style="color: #999; font-size: 13px; font-style: italic;">
+                Belum ada TP untuk elemen ini.
+              </div>
+            </div>
+            
+          </div>
         </div>
 
+        <div style="margin-top: 15px; padding: 15px; background: #e3f2fd; border: 1px dashed #1565c0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <strong style="color: #1565c0;"><i class="fa-solid fa-robot"></i> Asisten AI Modul Ajar</strong>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #555;">
+              Bingung mengisi Pemahaman Bermakna, Pertanyaan Pemantik, & Kegiatan? Biarkan AI membantu Anda merancangnya berdasarkan TP yang dipilih.
+            </p>
+          </div>
+          <button @click.prevent="salinPromptAI" style="background: #1565c0; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <i class="fa-solid fa-copy"></i> Buat & Salin Prompt AI
+          </button>
+        </div>
 
         <div class="section-header margin-top-25">
           <h3><i class="fa-solid fa-list-ol"></i> Skenario Kegiatan Pembelajaran</h3>
@@ -167,6 +208,7 @@ const isSaving = ref(false);
 const plottingId = ref(route.query.plotting_id || '');
 const mapelId = ref(route.query.mapel_id || '');
 
+const listCp = ref([]);
 const opsiTp = ref([]);
 const opsiSoal = ref([]); // Menampung list bank_soals dari backend
 
@@ -209,20 +251,90 @@ const muatDataPendukung = async () => {
     // 1. Ambil list TP via endpoint KKTP
     const resKktp = await api.get('/guru/kktp', { params: { mapel_id: mapelId.value, kelas_id: plottingId.value } });
     const payload = resKktp.data.data || {};
+    
     const dataCP = payload.list_cp || [];
+
+    // 👇 INI BARIS YANG HILANG: Masukkan data ke variabel listCp agar dibaca oleh HTML!
+    listCp.value = dataCP; 
+
+    // (Opsional) Jika variabel opsiTp masih Anda butuhkan di fungsi lain, biarkan saja:
     let tempTp = [];
     dataCP.forEach(cp => {
       if (cp.list_tp) tempTp.push(...cp.list_tp);
     });
     opsiTp.value = tempTp;
 
-    // 2. 🟢 Ambil list Soal yang sudah ada di Bank Soal berdasarkan plotting_id
-    const resSoal = await api.get('/guru/bank-soal', { params: { page: 1 } }); // Sesuaikan jika ada filter plotting di backend Anda
-    // Catatan: Jika backend bank-soal menerima filter plotting_id, ganti menjadi: { params: { plotting_id: plottingId.value } }
+    // 2. Ambil list Soal yang sudah ada di Bank Soal
+    const resSoal = await api.get('/guru/bank-soal', { params: { page: 1 } }); 
     opsiSoal.value = resSoal.data.data || [];
 
   } catch (error) {
     console.error("Gagal muat data pendukung:", error);
+  }
+};
+
+// Fungsi untuk merangkai dan menyalin Prompt AI
+const salinPromptAI = async () => {
+  // 1. Validasi: Pastikan ada Bab dan TP yang dipilih
+  if (!form.value.bab_atau_materi) {
+    Swal.fire({ icon: 'warning', title: 'Isi Bab / Materi!', text: 'Silakan isi Bab/Pokok Materi terlebih dahulu.' });
+    return;
+  }
+  if (form.value.tujuan_pembelajaran_ids.length === 0) {
+    Swal.fire({ icon: 'warning', title: 'Pilih TP Dulu!', text: 'Silakan centang minimal 1 Tujuan Pembelajaran (TP).' });
+    return;
+  }
+
+  // Ambil data tambahan untuk konteks AI
+  const waktu = form.value.alokasi_waktu ? `${form.value.alokasi_waktu} Menit` : 'Sesuai jam pelajaran';
+  const pertemuan = form.value.pertemuan_ke ? form.value.pertemuan_ke : '-';
+
+  // 2. Kumpulkan teks TP yang dicentang
+  let teksTpTerpilih = [];
+  listCp.value.forEach(cp => {
+    if (cp.list_tp) {
+      cp.list_tp.forEach(tp => {
+        if (form.value.tujuan_pembelajaran_ids.includes(tp.id)) {
+          teksTpTerpilih.push(`[${tp.kode_tp}] ${tp.deskripsi}`);
+        }
+      });
+    }
+  });
+
+  // 3. Format teks TP menjadi list nomor
+  const stringTp = teksTpTerpilih.map((teks, index) => `${index + 1}. ${teks}`).join('\n');
+
+  // 4. Susun Prompt AI (SANGAT SPESIFIK & SIMPEL)
+  const promptText = `Saya sedang membuat Modul Ajar SMK untuk materi: "${form.value.bab_atau_materi}" (Pertemuan: ${pertemuan}, Waktu: ${waktu}).
+
+Tujuan Pembelajarannya adalah:
+${stringTp}
+
+Tolong buatkan isian untuk form Modul Ajar saya. Syarat utama: Buatlah SANGAT SIMPEL, bahasanya sederhana, langsung pada intinya (to the point), dan tidak kompleks. Tanpa kalimat pengantar atau penutup dari Anda.
+
+Langsung jawab persis dengan 6 format berikut:
+
+1. Pertanyaan Pemantik: (1-2 pertanyaan singkat pemancing nalar)
+2. Pemahaman Bermakna: (1-2 kalimat singkat manfaat materi di dunia nyata)
+3. Sarana & Prasarana: (Daftar singkat alat/bahan/media)
+4. LKPD: (Ide singkat tugas praktek/teori untuk siswa)
+5. Glosarium dan Daftar Pustaka: (3-4 kata kunci dan 1-2 buku/referensi umum)
+6. Skenario Kegiatan Pembelajaran: (Tuliskan poin-poin sangat singkat untuk: Pendahuluan, Inti, Penutup)`;
+
+  // 5. Salin ke Clipboard menggunakan API Browser
+  try {
+    await navigator.clipboard.writeText(promptText);
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Prompt Berhasil Disalin!',
+      html: '<p style="font-size:14px">Silakan buka <b>ChatGPT / Gemini / Claude</b>, lalu <b>Paste</b> di sana. Hasilnya dijamin lebih simpel!</p>',
+      confirmButtonColor: '#1565c0',
+      confirmButtonText: 'Buka AI & Paste!'
+    });
+  } catch (err) {
+    console.error('Gagal copy text: ', err);
+    Swal.fire({ icon: 'error', title: 'Gagal Menyalin', text: 'Browser Anda mungkin tidak mengizinkan aksi copy otomatis.' });
   }
 };
 
@@ -270,6 +382,64 @@ onMounted(() => {
 .input-text:focus, .input-textarea:focus { border-color: #689F38; }
 .text-danger { color: #d9534f; }
 .text-muted { color: #888; font-size: 13px; }
+
+.tp-selection-container {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.cp-group-card {
+  background: #fff;
+  border: 1px solid #c5e1a5;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  overflow: hidden; /* Kunci utamanya di sini agar tidak melewati batas layar */
+}
+
+/* 2. Perbaiki Header Elemen agar rapat ke kiri dan responsif */
+.cp-header {
+  display: flex;
+  align-items: flex-start; /* Sejajarkan di atas jika teksnya jadi 2 baris */
+  justify-content: flex-start; /* Pastikan merapat ke KIRI, jangan space-between */
+  gap: 12px; /* Jarak antara ikon dan teks */
+  background-color: #e8f5e9;
+  padding: 12px 15px;
+  border-bottom: 1px solid #c5e1a5;
+  color: #1E5631;
+}
+.cp-header strong {
+  flex: 1; /* Biarkan teks mengambil sisa ruang yang ada */
+  white-space: normal; /* Mengizinkan teks turun ke baris baru */
+  word-wrap: break-word; /* Memotong kata secara paksa jika ruang habis */
+  line-height: 1.5;
+  text-align: left;
+  font-size: 14px;
+}
+
+/* Memodifikasi checkbox-grid bawaan Anda */
+.cp-group-card .checkbox-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* Buat 1 kolom agar teks TP yang panjang tidak terpotong */
+  gap: 10px;
+  padding: 15px;
+  background-color: white;
+}
+
+.badge-kode-tp {
+  font-weight: bold;
+  color: #e65100;
+}
+
+.empty-state-small {
+  padding: 15px;
+  background: #fff3e0;
+  color: #e65100;
+  border-radius: 6px;
+  border: 1px dashed #ffb74d;
+  font-size: 13px;
+}
 
 .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f9fbe7; padding: 15px; border-radius: 6px; border: 1px solid #c5e1a5; }
 .checkbox-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; }

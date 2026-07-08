@@ -15,37 +15,26 @@
 
     <div class="card-box margin-top-25">
       <div style="margin-bottom: 15px;">
-        <h3 style="margin: 0; color: #1E5631;"><i class="fa-solid fa-filter"></i> Filter & Tugas Mengajar</h3>
-        <p style="margin: 4px 0 0 0; color: #666; font-size: 13px;">Pilih mata pelajaran untuk melihat data modul, dan gunakan filter TP jika diperlukan.</p>
+        <h3 style="margin: 0; color: #1E5631;"><i class="fa-solid fa-filter"></i> Tugas Mengajar</h3>
+        <p style="margin: 4px 0 0 0; color: #666; font-size: 13px;">Pilih mata pelajaran untuk melihat data daftar Modul Ajar / RPP.</p>
       </div>
       
       <div class="filter-wrapper">
-        <div class="filter-item">
+       <div class="filter-item">
           <label class="filter-label">Mata Pelajaran & Kelas:</label>
           <select v-model="selectedPlotting" @change="onPlottingChange" class="input-text-select">
             <option value="">-- Tampilkan Semua Mata Pelajaran --</option>
             <option v-for="plot in listPlotting" :key="plot.id" :value="plot.id">
-              {{ plot.mapel || plot.nama_mapel }} 
-              ({{ formatArrayKelas(plot.list_kelas || plot.kelas || []) }})
+              {{ plot.mapel }} ({{ formatArrayKelas(plot.list_kelas) }})
             </option>
           </select>
         </div>
-
-        <div class="filter-item" v-if="selectedPlotting">
-          <label class="filter-label">Filter Tujuan Pembelajaran (TP):</label>
-          <select v-model="filterTp" @change="muatModulAjar" class="input-text-select">
-            <option value="">-- Semua TP / Tampilkan Semua Modul --</option>
-            <option v-for="tp in listTp" :key="tp.id" :value="tp.id">
-              [{{ tp.kode_tp }}] {{ tp.deskripsi }}
-            </option>
-          </select>
         </div>
-      </div>
     </div>
 
     <div v-if="!selectedPlotting" class="empty-state margin-top-25">
       <i class="fa-solid fa-hand-pointer empty-icon"></i>
-      <p>Silakan pilih tugas mengajar pada filter di atas untuk menampilkan data Modul Ajar.</p>
+      <p>Silakan pilih tugas mengajar di atas untuk menampilkan data Modul Ajar.</p>
     </div>
 
     <div v-else class="card-box margin-top-25">
@@ -215,12 +204,10 @@ const router = useRouter();
 const isLoading = ref(false);
 const listPlotting = ref([]);
 const selectedPlotting = ref('');
-const listTp = ref([]);
-const filterTp = ref('');
 const listModul = ref([]);
 const expandedRows = ref([]);
 
-// Setup Toast SweetAlert yang disamakan 100% dengan KktpView & BankSoalView
+// Setup Toast SweetAlert
 const Toast = Swal.mixin({
   toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
   background: '#1E5631', color: '#FFE0B2', iconColor: '#FBC02D'
@@ -234,10 +221,9 @@ const formatArrayKelas = (arr) => {
 
 const kembaliKeDashboard = () => router.push({ name: 'guru.dashboard' });
 
-// 1. Muat Tugas Mengajar (Plotting) Guru - Logika dipinjam dari BankSoalView
+// 1. Muat Tugas Mengajar (Plotting) Guru
 const muatPlotting = async () => {
   try {
-    // TAMBAHKAN PARAMETER per_page: 100 AGAR SEMUA DATA DROPDOWN TAMPIL
     const res = await api.get('/guru/plotting', { params: { per_page: 100 } });
     listPlotting.value = res.data.data || res.data || [];
   } catch (error) {
@@ -245,53 +231,25 @@ const muatPlotting = async () => {
   }
 };
 
-// 2. Aksi Saat Ganti Mapel (Menarik TP Terkait untuk Isian Filter Dropdown)
-const onPlottingChange = async () => {
-  filterTp.value = '';
+// 2. Aksi Saat Ganti Mapel
+const onPlottingChange = () => {
   listModul.value = [];
-  listTp.value = [];
   expandedRows.value = [];
 
   if (!selectedPlotting.value) return;
-
-  const plotAktif = listPlotting.value.find(p => p.id === selectedPlotting.value);
-  if (plotAktif) {
-    try {
-      // Menggunakan properti mapel_id atau id_mapel sebagai fallback aman
-      const targetMapelId = plotAktif.mapel_id || plotAktif.id_mapel;
-      
-      const res = await api.get('/guru/kktp', {
-        params: { mapel_id: targetMapelId, kelas_id: plotAktif.id }
-      });
-      const payload = res.data.data || {};
-      const dataCP = payload.list_cp || [];
-      
-      let tempTp = [];
-      dataCP.forEach(cp => {
-        if (cp.list_tp) {
-          tempTp.push(...cp.list_tp);
-        }
-      });
-      listTp.value = tempTp;
-    } catch (error) {
-      console.error("Gagal memuat TP untuk filter:", error);
-    }
-  }
-
-  // Tarik data modul ajar
+  
+  // Langsung muat daftar modul tanpa perlu fetch API KKTP/CP lagi
   muatModulAjar();
 };
 
-// 3. Ambil List Modul Ajar Sesuai Filter ke Backend
+// 3. Ambil List Modul Ajar
 const muatModulAjar = async () => {
   if (!selectedPlotting.value) return;
-
   isLoading.value = true;
   try {
     const res = await api.get('/guru/modul-ajar', {
       params: {
-        plotting_id: selectedPlotting.value,
-        tp_id: filterTp.value || null // Menangkap query filter TP
+        plotting_id: selectedPlotting.value
       }
     });
     listModul.value = res.data.data || res.data;
@@ -302,7 +260,7 @@ const muatModulAjar = async () => {
   }
 };
 
-// 4. Logic Expandable Row (Pendekatan 3 UX)
+// 4. Logic Expandable Row
 const toggleRow = (id) => {
   const index = expandedRows.value.indexOf(id);
   if (index > -1) {
@@ -317,19 +275,17 @@ const isExpanded = (id) => expandedRows.value.includes(id);
 // Actions Placeholder
 const tambahModul = () => {
   if (!selectedPlotting.value) {
-    Toast.fire({ icon: 'warning', title: 'Silakan pilih Mata Pelajaran terlebih dahulu di filter!' });
+    Toast.fire({ icon: 'warning', title: 'Silakan pilih Mata Pelajaran terlebih dahulu!' });
     return;
   }
   
-  // 1. Cari data plotting yang sedang dipilih untuk mengambil mapel_id-nya
   const plotAktif = listPlotting.value.find(p => p.id === selectedPlotting.value);
   
-  // 2. Lempar plotting_id DAN mapel_id ke halaman form
   router.push({ 
     name: 'guru.modul-ajar.create', 
     query: { 
       plotting_id: selectedPlotting.value,
-      mapel_id: plotAktif.mapel_id // 🟢 Ini tambahan barunya
+      mapel_id: plotAktif.mapel_id 
     } 
   });
 };
