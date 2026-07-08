@@ -149,13 +149,20 @@
           </div>
         </section>
 
-        <section v-for="part in ['kode_etik', 'ikrar_guru', 'tata_tertib', 'pembiasaan', 'kaldik', 'rpe', 'prota', 'prosem', 'jurnal_agenda']" 
-                 :key="part" v-if="showPart[part]" class="page-a4 break-before">
-          <div class="placeholder-page">
-            <h2 class="text-uppercase">{{ part.replace('_', ' ') }}</h2>
-            <hr/>
-            <p class="text-muted">[Konten {{ part }} akan di-render di sini]</p>
-          </div>
+        <section v-if="showPart.kode_etik" class="page-a4 break-before">
+          <KodeEtik :config="settingCetak" :guru="dataGuruDynamic" :data="dataKodeEtik" />
+        </section>
+
+        <section v-if="showPart.ikrar_guru" class="page-a4 break-before">
+          <IkrarGuru :config="settingCetak" :guru="dataGuruDynamic" :data="dataIkrarGuru" />
+        </section>
+
+        <section v-if="showPart.tata_tertib" class="page-a4 break-before">
+          <TataTertib :config="settingCetak" :guru="dataGuruDynamic" :data="dataTataTertib" />
+        </section>
+
+        <section v-if="showPart.pembiasaan" class="page-a4 break-before">
+          <Pembiasaan :config="settingCetak" :guru="dataGuruDynamic" :data="dataPembiasaan" />
         </section>
 
         <section v-if="showPart.sekat3" class="page-a4 break-before">
@@ -207,6 +214,10 @@ import CapaianPembelajaran from '../../components/cetak/CapaianPembelajaran.vue'
 import Atp from '../../components/cetak/Atp.vue';
 import ModulAjar from '../../components/cetak/ModulAjar.vue';
 import Kktp from '../../components/cetak/Kktp.vue';
+import KodeEtik from '../../components/cetak/KodeEtik.vue';
+import IkrarGuru from '../../components/cetak/IkrarGuru.vue';
+import TataTertib from '../../components/cetak/TataTertib.vue';
+import Pembiasaan from '../../components/cetak/Pembiasaan.vue';
 
 const listPloting = ref([]);
 const selectedPloting = ref('');
@@ -222,6 +233,10 @@ const dataCp = ref(null);
 const dataAtp = ref([]);
 const dataModul = ref([]);
 const dataKktp = ref(null);
+const dataKodeEtik = ref(null);
+const dataIkrarGuru = ref(null);
+const dataTataTertib = ref(null);
+const dataPembiasaan = ref(null);
 
 const settingCetak = ref({
   nama_sekolah: 'SMK ISLAM 1 BLITAR',
@@ -377,6 +392,27 @@ const handlePlotingChange = async () => {
         }
       });
       dataKktp.value = resKktp.data?.data || resKktp.data || null;
+      // ==== AMBIL DATA KODE ETIK GURU ====
+      const resKodeEtik = await api.get('/guru/dokumen-statis', {
+        params: { jenis: 'kode_etik' }
+      });
+      dataKodeEtik.value = resKodeEtik.data?.data || null;
+
+      const resIkrar = await api.get('/guru/dokumen-statis', {
+        params: { jenis: 'ikrar_guru' } // <-- Sesuaikan jika nama jenis di DB berbeda
+      });
+      dataIkrarGuru.value = resIkrar.data?.data || null;
+
+      const resTataTertib = await api.get('/guru/dokumen-statis', {
+        params: { jenis: 'tata_tertib' } // sesuaikan jenis dari database
+      });
+      dataTataTertib.value = resTataTertib.data?.data || null;
+
+      // ==== AMBIL DATA PEMBIASAAN ====
+      const resPembiasaan = await api.get('/guru/dokumen-statis', {
+        params: { jenis: 'pembiasaan_guru' } // sesuaikan jenis dari database
+      });
+      dataPembiasaan.value = resPembiasaan.data?.data || null;
 
     } catch (error) {
       console.error("Gagal mengambil data riil CP / ATP:", error);
@@ -384,7 +420,12 @@ const handlePlotingChange = async () => {
       dataAtp.value = [];
       dataModul.value = [];
       dataKktp.value = null;
+      dataKodeEtik.value = null;
+      dataIkrarGuru.value = null;
+      dataTataTertib.value = null;
+      dataPembiasaan.value = null;
     }
+  
   }
 };
 
