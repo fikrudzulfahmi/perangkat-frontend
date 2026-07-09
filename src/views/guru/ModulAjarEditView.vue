@@ -461,7 +461,7 @@ Langsung jawab persis dengan 7 format berikut:
 
 6. Skenario Kegiatan Pembelajaran: 
 a. Tuliskan poin-poin yang sangat detail pada Skenario Kegiatan Pembelajaran untuk Kegiatan: Pendahuluan, Inti, Penutup, serta munculkan pembagian alokasi waktunya.
-b. Tuliskan poin-poin pada kegiatan inti lebih detailkan penjabarannya dalam bentuk poin-poin kegiatan pada setiap pertemuan, serta munculkan pembagian alokasi waktunya.
+b. Tuliskan poin-poin pada kegiatan inti lebih detailkan dalam bentuk poin-poin kegiatan pada setiap pertemuan, serta munculkan pembagian alokasi waktunya.
 
 7. Panduan Asesmen, Remedial, dan Pengayaan (Sesuai Lampiran Form):
 a. Rekomendasi Centang Jenis Asesmen: (Sebutkan jenis asesmen yang harus dicentang antara Diagnostik, Formatif, atau Sumatif berdasarkan skenario pembelajaran di atas).
