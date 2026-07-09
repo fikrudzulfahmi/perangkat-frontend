@@ -395,16 +395,36 @@ const salinPromptAI = async () => {
 Tujuan Pembelajarannya adalah:
 ${stringTp}
 
-Tolong buatkan isian untuk form Modul Ajar saya. Syarat utama: Buatlah SANGAT SIMPEL, bahasanya sederhana, langsung pada intinya (to the point), dan tidak kompleks. Tanpa kalimat pengantar atau penutup dari Anda.
+Tolong buatkan isian untuk form Modul Ajar saya. 
 
-Langsung jawab persis dengan 6 format berikut:
+Syarat utama: 
+Buatlah modul berikut dengan bahasa yang sederhana, langsung pada intinya (to the point), dan tidak kompleks. Tanpa kalimat pengantar atau penutup dari Anda. 
 
-1. Pertanyaan Pemantik: (1-2 pertanyaan singkat pemancing nalar)
-2. Pemahaman Bermakna: (1-2 kalimat singkat manfaat materi di dunia nyata)
-3. Sarana & Prasarana: (Daftar singkat alat/bahan/media)
-4. LKPD: (Ide singkat tugas praktek/teori untuk siswa)
-5. Glosarium dan Daftar Pustaka: (3-4 kata kunci dan 1-2 buku/referensi umum)
-6. Skenario Kegiatan Pembelajaran: (Tuliskan poin-poin sangat singkat untuk: Pendahuluan, Inti, Penutup)`;
+Langsung jawab persis dengan 7 format berikut:
+
+1. Pertanyaan Pemantik: 
+(1-2 pertanyaan singkat pemancing nalar)
+
+2. Pemahaman Bermakna: 
+(1-2 kalimat singkat manfaat materi di dunia nyata)
+
+3. Sarana & Prasarana: 
+(Daftar singkat alat/bahan/media)
+
+4. LKPD: 
+(Ide singkat tugas praktek/teori untuk siswa)
+
+5. Glosarium dan Daftar Pustaka: 
+(3-4 kata kunci dan 1-2 buku/referensi umum)
+
+6. Skenario Kegiatan Pembelajaran: 
+a. Tuliskan poin-poin yang sangat detail pada Skenario Kegiatan Pembelajaran untuk Kegiatan: Pendahuluan, Inti, Penutup, serta munculkan pembagian alokasi waktunya.
+b. Tuliskan poin-poin pada kegiatan inti lebih detailkan penjabarannya dalam bentuk poin-poin kegiatan pada setiap pertemuan, serta munculkan pembagian alokasi waktunya.
+
+7. Panduan Asesmen, Remedial, dan Pengayaan (Sesuai Lampiran Form):
+a. Rekomendasi Centang Jenis Asesmen: (Sebutkan jenis asesmen yang harus dicentang antara Diagnostik, Formatif, atau Sumatif berdasarkan skenario pembelajaran di atas).
+b. Langkah Remedial (Editable): (Tuliskan poin-poin singkat langkah remedial konkret yang bisa langsung disalin ke kolom form).
+c. Evaluasi Pengayaan (Editable): (Tuliskan poin-poin singkat bentuk evaluasi pengayaan konkret yang bisa langsung disalin ke kolom form).`;
 
   try {
     await navigator.clipboard.writeText(promptText);
