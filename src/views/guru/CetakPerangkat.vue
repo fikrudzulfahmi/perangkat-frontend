@@ -40,13 +40,13 @@
         <p class="section-subtitle"><strong>Pilih Bagian Dokumen:</strong></p>
         <div class="scrollable-checklist">
           <div class="buku-section">
-            <p class="buku-title">唐 BAGIAN UTAMA</p>
+            <p class="buku-title">📂 BAGIAN UTAMA</p>
             <label><input type="checkbox" v-model="showPart.cover" /> 1.1 Cover / Sampul Utama</label>
             <label><input type="checkbox" v-model="showPart.daftar_isi" /> Daftar Isi</label>
           </div>
 
           <div class="buku-section">
-            <p class="buku-title">祷 BUKU KERJA 1</p>
+            <p class="buku-title">📂 BUKU KERJA 1</p>
             <label><input type="checkbox" v-model="showPart.sekat1" /> Sekat Buku Kerja 1</label>
             <label><input type="checkbox" v-model="showPart.cp" /> 1.2 Capaian Pembelajaran (CP)</label>
             <label><input type="checkbox" v-model="showPart.atp" /> 1.3 TP & ATP</label>
@@ -55,7 +55,7 @@
           </div>
 
           <div class="buku-section">
-            <p class="buku-title">痘 BUKU KERJA 2</p>
+            <p class="buku-title">📂 BUKU KERJA 2</p>
             <label><input type="checkbox" v-model="showPart.sekat2" /> Sekat Buku Kerja 2</label>
             <label><input type="checkbox" v-model="showPart.kode_etik" /> 2.1 Kode Etik Guru</label>
             <label><input type="checkbox" v-model="showPart.ikrar_guru" /> 2.2 Ikrar Guru</label>
@@ -69,7 +69,7 @@
           </div>
 
           <div class="buku-section">
-            <p class="buku-title">等 BUKU KERJA 3</p>
+            <p class="buku-title">📂 BUKU KERJA 3</p>
             <label><input type="checkbox" v-model="showPart.sekat3" /> Sekat Buku Kerja 3</label>
             <label><input type="checkbox" v-model="showPart.jadwal_blok" /> 3.1 Jadwal Mengajar (Blok)</label>
             <label><input type="checkbox" v-model="showPart.absensi" /> 3.2 Absensi Siswa</label>
@@ -84,7 +84,7 @@
           </div>
 
           <div class="buku-section">
-            <p class="buku-title">燈 BUKU KERJA 4</p>
+            <p class="buku-title">📂 BUKU KERJA 4</p>
             <label><input type="checkbox" v-model="showPart.sekat4" /> Sekat Buku Kerja 4</label>
             <label><input type="checkbox" v-model="showPart.evaluasi_diri" /> 4.1 Evaluasi Diri Guru (PKG)</label>
             <label><input type="checkbox" v-model="showPart.tindak_lanjut" /> 4.2 Tindak Lanjut Kerja Guru</label>
@@ -128,11 +128,17 @@
           <Atp :config="settingCetak" :guru="dataGuruDynamic" :atpData="dataAtp" />
         </section>
 
-      <section v-if="showPart.modul_ajar" class="page-a4 break-before">
-          <ModulAjar :config="settingCetak" :guru="dataGuruDynamic" :modulList="dataModul" />
-        </section>
+       <template v-if="showPart.modul_ajar">
+  <section 
+    v-for="(modul, index) in dataModul" 
+    :key="'modul-' + index" 
+    class="page-a4 break-before"
+  >
+    <ModulAjar :config="settingCetak" :guru="dataGuruDynamic" :modulList="[modul]" />
+  </section>
+</template>
 
-      <section v-if="showPart.kktp" class="page-a4 break-before">
+        <section v-if="showPart.kktp" class="page-a4 break-before">
           <Kktp 
             :config="settingCetak" 
             :guru="dataGuruDynamic" 
@@ -168,13 +174,35 @@
         <section v-if="showPart.kaldik" class="page-a4 break-before">
           <Kaldik :data="dataKaldikRpe" />
         </section>
-<section v-if="showPart.rpe" class="page-a4 break-before">
+
+        <section v-if="showPart.rpe" class="page-a4 break-before">
           <Rpe 
              :config="settingCetak" 
              :guru="dataGuruDynamic" 
              :data="dataRpe" 
           />
         </section>
+
+        <section v-if="showPart.prota" class="page-a4 break-before">
+          <Prota 
+             :config="settingCetak" 
+             :guru="dataGuruDynamic" 
+             :data="dataAtp" 
+          />
+        </section>
+
+<Prosem 
+  v-if="showPart.prosem && dataProsem"
+  :prosemData="dataProsem"
+  :identity="dataGuruDynamic"
+  :settingCetak="settingCetak"
+/>
+<JurnalAgenda 
+  v-if="showPart.jurnal_agenda" 
+  :identity="dataGuruDynamic" 
+  :settingCetak="settingCetak" 
+/>
+        
 
         <section v-if="showPart.sekat3" class="page-a4 break-before">
           <div class="sekat-divider">
@@ -183,14 +211,12 @@
             <p>JADWAL, ABSENSI, NILAI, ANALISIS, DAYA SERAP, REMEDIAL, BUKU PEGANGAN, SOAL</p>
           </div>
         </section>
-
-        <section v-for="part in ['jadwal_blok', 'absensi', 'daftar_nilai', 'analisis_belajar', 'daya_serap', 'remedial_pengayaan', 'buku_pegangan', 'kumpulan_soal', 'analisis_butir', 'rekomendasi_soal']" 
-                 :key="part" v-if="showPart[part]" class="page-a4 break-before">
-          <div class="placeholder-page">
-            <h2 class="text-uppercase">{{ part.replace('_', ' ') }}</h2>
-            <hr/>
-            <p class="text-muted">[Konten {{ part }} akan di-render di sini]</p>
-          </div>
+<section v-if="showPart.jadwal_blok" class="page-a4 break-before">
+          <JadwalMengajar 
+            :config="settingCetak" 
+            :guru="dataGuruDynamic" 
+            :jadwalData="dataJadwal" 
+          />
         </section>
 
         <section v-if="showPart.sekat4" class="page-a4 break-before">
@@ -201,14 +227,15 @@
           </div>
         </section>
 
-        <section v-for="part in ['evaluasi_diri', 'tindak_lanjut']" 
-                 :key="part" v-if="showPart[part]" class="page-a4 break-before">
-          <div class="placeholder-page">
-            <h2 class="text-uppercase">{{ part.replace('_', ' ') }}</h2>
-            <hr/>
-            <p class="text-muted">[Konten {{ part }} akan di-render di sini]</p>
-          </div>
-        </section>
+        <template v-for="part in ['evaluasi_diri', 'tindak_lanjut']" :key="part">
+          <section v-if="showPart[part]" class="page-a4 break-before">
+            <div class="placeholder-page">
+              <h2 class="text-uppercase">{{ part.replace('_', ' ') }}</h2>
+              <hr/>
+              <p class="text-muted">[Konten {{ part }} akan di-render di sini]</p>
+            </div>
+          </section>
+        </template>
 
       </template>
     </main>
@@ -231,6 +258,10 @@ import TataTertib from '../../components/cetak/TataTertib.vue';
 import Pembiasaan from '../../components/cetak/Pembiasaan.vue';
 import Kaldik from '../../components/cetak/Kaldik.vue';
 import Rpe from '../../components/cetak/Rpe.vue';
+import Prota from '../../components/cetak/Prota.vue';
+import Prosem from '../../components/cetak/Prosem.vue';
+import JurnalAgenda from '../../components/cetak/JurnalAgenda.vue';
+import JadwalMengajar from '../../components/cetak/JadwalMengajar.vue';
 
 const listPloting = ref([]);
 const selectedPloting = ref('');
@@ -252,9 +283,11 @@ const dataTataTertib = ref(null);
 const dataPembiasaan = ref(null);
 const dataKaldikRpe = ref([]);
 const dataRpe = ref([]);
+const dataProsem = ref(null);
+const dataJadwal = ref([]);
 
 const settingCetak = ref({
-  nama_sekolah: 'SMK ISLAM 1 BLITAR',
+  nama_sekolah: 'SMKS ISLAM 1 KOTA BLITAR',
   nama_kepsek: 'Drs. Gigih Widiyanto, M.Pd',
   nip_kepsek: '-'
 });
@@ -293,7 +326,6 @@ const showPart = ref({
   tindak_lanjut: false
 });
 
-// Tetap dipertahankan agar tidak memicu error prop pada komponen anak, namun disembunyikan lewat CSS
 const pageNumbers = computed(() => {
   const pages = {};
   let current = 1; 
@@ -351,14 +383,6 @@ const handlePlotingChange = async () => {
     } catch (e) {
       namaDariStorage = localStorage.getItem('user') || '';
     }
-    
-    dataGuruDynamic.value = {
-      name: activePlot.guru || namaDariStorage || 'Nama Guru',
-      mapel: activePlot.mapel || '-',
-      kelas: formatArrayKelas(activePlot.list_kelas),
-      tahun_pelajaran: activePlot.tahun_pelajaran || '-',
-      jp: activePlot.jp_per_minggu || 0
-    };
 
     try {
       const resCp = await api.get('/guru/capaian-pembelajaran', {
@@ -366,6 +390,20 @@ const handlePlotingChange = async () => {
       });
       const dataCpArray = resCp.data?.data || resCp.data || [];
       dataCp.value = dataCpArray;
+
+      let faseDariCp = '-';
+      if (dataCp.value && dataCp.value.length > 0) {
+        faseDariCp = dataCp.value[0].fase || '-';
+      }
+
+      dataGuruDynamic.value = {
+        name: activePlot.guru || namaDariStorage || 'Nama Guru',
+        mapel: activePlot.mapel || '-',
+        kelas: formatArrayKelas(activePlot.list_kelas),
+        tahun_pelajaran: activePlot.tahun_pelajaran || '-',
+        jp: activePlot.jp_per_minggu || 0,
+        fase: faseDariCp
+      };
 
       const resAtp = await api.get('/guru/atp', {
         params: { 
@@ -382,6 +420,7 @@ const handlePlotingChange = async () => {
           const savedMatch = dataSavedAtp.find(a => String(a.tujuan_pembelajaran_id) === String(tp.id));
           if (savedMatch) {
             mergedAtp.push({
+              elemen: cp.elemen,
               kode_tp: tp.kode_tp || tp.kode || '-',
               deskripsi_tp: tp.deskripsi || tp.deskripsi_tp || '-',
               semester: savedMatch.semester || '-',
@@ -400,33 +439,32 @@ const handlePlotingChange = async () => {
       });
       dataModul.value = resModul.data?.data || resModul.data || [];
 
-     const resKktp = await api.get('/guru/kktp', {
+      const resKktp = await api.get('/guru/kktp', {
         params: { 
-          mapel_id: activePlot.mapel_id || activePlot.id_mapel, // <--- Memperbaiki error mapel_id
-          kelas_id: activePlot.kelas_id || activePlot.id,       // <--- Memperbaiki (and 1 more error)
+          mapel_id: activePlot.mapel_id || activePlot.id_mapel, 
+          kelas_id: activePlot.kelas_id || activePlot.id,      
           plotting_id: activePlot.id
         }
       });
       dataKktp.value = resKktp.data?.data || resKktp.data || null;
-      // ==== AMBIL DATA KODE ETIK GURU ====
+      
       const resKodeEtik = await api.get('/guru/dokumen-statis', {
         params: { jenis: 'kode_etik' }
       });
       dataKodeEtik.value = resKodeEtik.data?.data || null;
 
       const resIkrar = await api.get('/guru/dokumen-statis', {
-        params: { jenis: 'ikrar_guru' } // <-- Sesuaikan jika nama jenis di DB berbeda
+        params: { jenis: 'ikrar_guru' } 
       });
       dataIkrarGuru.value = resIkrar.data?.data || null;
 
       const resTataTertib = await api.get('/guru/dokumen-statis', {
-        params: { jenis: 'tata_tertib' } // sesuaikan jenis dari database
+        params: { jenis: 'tata_tertib' } 
       });
       dataTataTertib.value = resTataTertib.data?.data || null;
 
-      // ==== AMBIL DATA PEMBIASAAN ====
       const resPembiasaan = await api.get('/guru/dokumen-statis', {
-        params: { jenis: 'pembiasaan_guru' } // sesuaikan jenis dari database
+        params: { jenis: 'pembiasaan_guru' } 
       });
       dataPembiasaan.value = resPembiasaan.data?.data || null;
 
@@ -437,13 +475,27 @@ const handlePlotingChange = async () => {
       });
       
       const fetchedData = resKaldikRpe.data?.data || [];
+      dataKaldikRpe.value = fetchedData; 
+      dataRpe.value = fetchedData;  
       
-      // Isi data ke masing-masing state komponen
-      dataKaldikRpe.value = fetchedData; // Untuk komponen Kaldik
-      dataRpe.value = fetchedData;       // Untuk komponen RPE
+      const resProsem = await api.get('/guru/prosem', {
+        params: { plotting_id: activePlot.id }
+      });
+      dataProsem.value = resProsem.data?.data || null;
+
+      // --- TAMBAHKAN KODE INI UNTUK MENGAMBIL JADWAL ---
+      const resJadwal = await api.get('/guru/jadwal-mengajar', {
+        params: { 
+          tahun_pelajaran_id: activePlot.tahun_pelajaran_id,
+          // Jika API butuh ID guru langsung dari aktif ploting
+          guru_id: activePlot.guru_id 
+        }
+      });
+      dataJadwal.value = resJadwal.data?.data || resJadwal.data || [];
+      // ------------------------------------------------
 
     } catch (error) {
-      console.error("Gagal mengambil data riil CP / ATP:", error);
+      console.error("Gagal mengambil data perangkat:", error);
       dataCp.value = [];
       dataAtp.value = [];
       dataModul.value = [];
@@ -454,8 +506,9 @@ const handlePlotingChange = async () => {
       dataPembiasaan.value = null;
       dataKaldikRpe.value = [];
       dataRpe.value = [];
+      dataProsem.value = null;
+      dataJadwal.value = [];
     }
-  
   }
 };
 
@@ -490,9 +543,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* ========================================================
-   GAYA PREVIEW DI LAYAR MONITOR (TETAP DIJAGA)
-   ======================================================== */
 .cetak-container { display: flex; background-color: #525659; height: 100vh; overflow: hidden; }
 .control-panel { width: 360px; padding: 25px 20px; background: #ffffff; border-right: 1px solid #e0e0e0; box-shadow: 4px 0 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; height: 100%; box-sizing: border-box; }
 .sticky-top { display: flex; flex-direction: column; height: 100%; }
@@ -547,11 +597,6 @@ onMounted(async () => {
 </style>
 
 <style>
-/* ========================================================
-   ATURAN OVERRIDE & CETAK (PRINT) FINAL
-   ======================================================== */
-
-/* PERMINTAAN USER: Menghilangkan nomor halaman & titik-titik di Daftar Isi (baik di preview maupun cetak) */
 .daftar-isi-container .dots,
 .daftar-isi-container .page-number,
 .page-footer {
@@ -559,7 +604,6 @@ onMounted(async () => {
 }
 
 @media print {
-  /* 1. Atur Kertas dan Sembunyikan Panel Kiri */
   @page {
     size: A4 portrait;
     margin: 15mm; 
@@ -570,7 +614,6 @@ onMounted(async () => {
     width: 0 !important;
   }
 
-  /* 2. Bersihkan Container Utama */
   html, body, #app, .main-layout, .wrapper, .main-content, .content-wrapper, main, .cetak-container, .preview-area {
     display: block !important;
     position: static !important;
@@ -583,7 +626,6 @@ onMounted(async () => {
     box-shadow: none !important;
   }
 
-  /* 3. Aturan Box Kertas A4 */
   .page-a4 { 
     display: block !important;
     width: 100% !important; 
@@ -598,13 +640,11 @@ onMounted(async () => {
     page-break-inside: auto !important;
   }
   
-  /* 4. Mekanisme Pindah Halaman */
   .break-before { 
     page-break-before: always !important; 
     break-before: page !important;
   }
 
-  /* 5. Wadah Pembungkus Komponen */
   .atp-container, .cp-container, div[class*="-container"] {
     display: block !important; 
     width: 100% !important;
@@ -613,21 +653,18 @@ onMounted(async () => {
     overflow: visible !important;
   }
 
-  /* 6. Aturan Tabel */
   .data-table, .cp-table, .identity-table {
     display: table !important; 
     width: 100% !important;
     page-break-inside: auto !important; 
   }
 
-  /* 7. Cegah Baris Terpotong */
   .data-table tbody tr, .cp-table tbody tr {
     page-break-inside: avoid !important; 
     break-inside: avoid !important;
     page-break-after: auto !important;
   }
 
-  /* 8. Ulangi Header Kolom */
   .data-table thead, .cp-table thead {
     display: table-header-group !important; 
   }

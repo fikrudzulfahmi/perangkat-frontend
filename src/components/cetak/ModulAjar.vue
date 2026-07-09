@@ -131,7 +131,7 @@ defineProps(['config', 'guru', 'modulList']);
   text-align: center;
   font-size: 20px;
   font-weight: bold;
-  margin-top: 10px;
+  margin-top: 0px;
   margin-bottom: 10px;
   text-transform: uppercase;
 }

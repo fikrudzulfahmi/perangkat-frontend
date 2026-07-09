@@ -33,25 +33,24 @@
 
           <div class="card-main-info">
             <h3>{{ plot.mapel || plot.nama_mapel }}</h3>
-            <p class="subtitle-pilih-kelas">Silakan pilih kelas untuk menyusun perangkat:</p>
+            <!-- <p class="subtitle-pilih-kelas">Silakan pilih kelas untuk menyusun perangkat:</p> -->
           </div>
           
           <div class="nested-kelas-container">
             <div 
               v-for="kls in (plot.list_kelas || plot.kelas || [])" 
               :key="kls.id" 
-              class="kelas-row-item"
-            >
+              class="kelas-row-item">
               <div class="kelas-name-info">
                 <i class="fa-solid fa-users" style="color: #e65100;"></i> 
                 <strong>{{ kls.nama_kelas || kls.kelas || kls.nama }}</strong>
               </div>
               
-              <div class="kelas-action-buttons">
-                <button @click="navigasiKePerangkat('atp', plot.mapel_id, kls.id)" class="btn-action-perangkat btn-blue">ATP</button>
-                <button @click="navigasiKePerangkat('kktp', plot.mapel_id, kls.id)" class="btn-action-perangkat btn-orange">KKTP</button>
-                <button @click="navigasiKePerangkat('modul', plot.mapel_id, kls.id)" class="btn-action-perangkat btn-green">Modul</button>
-              </div>
+              <!-- <div class="kelas-action-buttons"> -->
+                <!-- <button @click="navigasiKePerangkat('atp', plot.mapel_id, kls.id)" class="btn-action-perangkat btn-blue">ATP</button> -->
+                <!-- <button @click="navigasiKePerangkat('kktp', plot.mapel_id, kls.id)" class="btn-action-perangkat btn-orange">KKTP</button> -->
+                <!-- <button @click="navigasiKePerangkat('modul', plot.mapel_id, kls.id)" class="btn-action-perangkat btn-green">Modul</button> -->
+              <!-- </div>  -->
             </div>
           </div>
           

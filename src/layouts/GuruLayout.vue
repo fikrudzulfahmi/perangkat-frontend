@@ -36,12 +36,13 @@
     </aside>
 
     <main class="main-content">
-      <header class="main-header" style="display: flex; justify-content: flex-end; align-items: center; padding: 15px 30px; background-color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-bottom: 1px solid #FFE0B2;">
-        <div class="header-user" style="display: flex; align-items: center; gap: 10px; color: #1E5631; font-weight: bold;">
-          <i class="fa-solid fa-circle-user" style="font-size: 20px;"></i>
-          <span>Portal Guru Pengampu</span>
-        </div>
-      </header>
+<header class="main-header" style="display: flex; justify-content: flex-end; align-items: center; padding: 15px 30px; background-color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-bottom: 1px solid #FFE0B2;">
+  <div class="header-user" style="display: flex; align-items: center; gap: 10px; color: #1E5631; font-weight: bold;">
+    <i class="fa-solid fa-circle-user" style="font-size: 20px;"></i>
+    <!-- Ubah bagian ini -->
+    <span>{{ namaUser || 'Portal Guru Pengampu' }}</span>
+  </div>
+</header>
       
       <router-view></router-view>
     </main>
@@ -49,20 +50,52 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../services/api';
+import Swal from 'sweetalert2';
 
 const router = useRouter();
+const namaUser = ref('');
 
-const handleLogout = async () => {
-  if (confirm('Apakah Anda yakin ingin keluar?')) {
-    try {
-      localStorage.removeItem('auth_token');
-      router.push('/');
-    } catch (error) {
-      console.error('Logout gagal:', error);
+onMounted(async () => {
+  try {
+    // Panggil route bawaan Laravel tadi
+    const response = await api.get('/user'); 
+    
+    // Sesuaikan '.name' dengan nama kolom di tabel users database Anda
+    // (misalnya response.data.name atau response.data.nama_lengkap)
+    namaUser.value = response.data.name; 
+    
+  } catch (error) {
+    console.error('Gagal mengambil data profil:', error);
+    // Opsional: Jika error (misal token kadaluarsa), paksa logout
+    if (error.response && error.response.status === 401) {
+       localStorage.removeItem('auth_token');
+       router.push('/');
     }
   }
+});
+
+const handleLogout = () => {
+  Swal.fire({
+    title: 'Keluar Aplikasi?',
+    text: "Anda harus login kembali untuk mengelola data.",
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#d9534f',
+    cancelButtonColor: '#1E5631',
+    confirmButtonText: 'Ya, Keluar',
+    cancelButtonText: 'Batal',
+    background: '#FFE0B2',
+    color: '#1E5631'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('nama_user');
+      router.push('/');
+    }
+  });
 };
 </script>
 
