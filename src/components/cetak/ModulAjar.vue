@@ -95,31 +95,37 @@
         <div class="sub-section break-before-if-needed">
           <h4 class="sub-title">5. Asesmen / Penilaian</h4>
           
-          <div v-if="!modul.bank_soals || modul.bank_soals.length === 0" class="pre-text">
-            Belum ada data butir soal asesmen untuk modul ini.
-          </div>
+          <ul v-if="modul.asesmen_diagnostik || modul.asesmen_formatif || modul.asesmen_sumatif" class="asesmen-list">
+            <li v-if="modul.asesmen_diagnostik">
+              <strong>Asesmen Diagnostik:</strong> Kuesioner/Survei Singkat atau Diskusi Awal.
+            </li>
+            <li v-if="modul.asesmen_formatif">
+              <strong>Asesmen Formatif:</strong> Observasi, Diskusi Kelompok, Penilaian Diri, Jurnal Belajar, Kuis Singkat, Umpan Balik Teman Sebaya.
+            </li>
+            <li v-if="modul.asesmen_sumatif">
+              <strong>Asesmen Sumatif:</strong> Proyek Akhir/Uji Kinerja, Tes Tulis Komprehensif, atau Portofolio.
+            </li>
+          </ul>
           
-          <div v-else class="soal-list">
-            <div v-for="(soal, sIdx) in modul.bank_soals" :key="sIdx" class="soal-item">
-              <div class="soal-header">
-                <strong>{{ sIdx + 1 }}. Asesmen {{ soal.jenis_asesmen }}</strong> ({{ soal.tipe_soal }}) - Bobot: {{ soal.bobot_nilai }}
-              </div>
-              <div class="soal-pertanyaan pre-text">{{ soal.pertanyaan }}</div>
-              
-              <ol v-if="soal.tipe_soal === 'Pilihan Ganda' && soal.pilihan_jawaban" type="A" class="pilihan-ganda">
-                <li v-for="(pil, pIdx) in soal.pilihan_jawaban" :key="pIdx">{{ pil }}</li>
-              </ol>
-
-              <div class="soal-kunci">
-                <strong>Kunci Jawaban:</strong> <span class="pre-text-inline">{{ soal.kunci_jawaban }}</span>
-              </div>
-            </div>
+          <div v-else class="pre-text">
+            Tidak ada jenis asesmen yang dipilih untuk modul ini.
           </div>
         </div>
 
-        <div class="sub-section">
+        <div class="sub-section break-before-if-needed">
           <h4 class="sub-title">6. Pengayaan dan Remedial</h4>
-          <div class="pre-text">{{ modul.pengayaan_remedial || 'Siswa yang belum tuntas diberikan remedial, sedangkan siswa yang sudah tuntas diberikan pengayaan.' }}</div>
+          
+          <div class="remedial-pengayaan-box">
+            <div class="rp-item">
+              <strong>a. Langkah Remedial</strong>
+              <div class="pre-text">{{ modul.remedial_content || 'Tidak ada data langkah remedial yang diatur.' }}</div>
+            </div>
+            
+            <div class="rp-item" style="margin-top: 15px;">
+              <strong>b. Evaluasi Pengayaan</strong>
+              <div class="pre-text">{{ modul.enrichment_content || 'Tidak ada data evaluasi pengayaan yang diatur.' }}</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -221,26 +227,27 @@ defineProps(['config', 'guru', 'modulList']);
 ul { margin: 5px 0; padding-left: 20px; }
 li { font-size: 14px; text-align: justify; margin-bottom: 6px; line-height: 1.5; }
 
-/* STYLE KHUSUS ASESMEN (BANK SOAL) */
-.soal-list { margin-top: 10px; }
-.soal-item { 
-  margin-bottom: 15px; 
-  padding-bottom: 10px; 
-  border-bottom: 1px dashed #ccc;
-  page-break-inside: avoid; /* Cegah soal terbelah di 2 halaman */
+
+/* STYLE ASESMEN & REMEDIAL BARU (PENGGANTI BANK SOAL) */
+.asesmen-list {
+  margin: 5px 0 15px 0;
+  padding-left: 20px;
 }
-.soal-item:last-child { border-bottom: none; }
-.soal-header { font-size: 14px; margin-bottom: 5px; color: #333;}
-.soal-pertanyaan { font-size: 14px; margin-bottom: 8px; font-weight: 500;}
-.pilihan-ganda { margin: 5px 0 10px 0; padding-left: 20px; }
-.pilihan-ganda li { font-size: 14px; margin-bottom: 4px; text-align: left;}
-.soal-kunci { 
-  font-size: 13px; 
-  background-color: #f9f9f9; 
-  padding: 8px; 
-  border-left: 3px solid #1E5631;
-  margin-top: 5px;
+.asesmen-list li {
+  margin-bottom: 6px;
+  line-height: 1.5;
+  font-size: 14px;
 }
+.remedial-pengayaan-box {
+  margin-top: 8px;
+}
+.rp-item strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+  color: #333;
+}
+
 
 /* UTILITY CLASSES */
 .bold-text { font-weight: bold; }
