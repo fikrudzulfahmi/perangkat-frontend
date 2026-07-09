@@ -15,6 +15,7 @@
     <div class="card-box margin-top-25">
       <form @submit.prevent="simpanModul">
         
+        <!-- 1. INFORMASI UMUM -->
         <div class="section-header">
           <h3><i class="fa-solid fa-file-lines"></i> Informasi Umum Modul</h3>
         </div>
@@ -36,49 +37,29 @@
           </div>
 
           <div class="form-group">
-            <label>Model Pembelajaran <span class="text-danger">*</span></label>
-            <select v-model="form.model_pembelajaran" class="input-text" required>
-              <option value="">-- Pilih Model --</option>
-              <option value="Tatap Muka (Luring)">Tatap Muka (Luring)</option>
-              <option value="PJJ (Daring)">PJJ (Daring)</option>
-              <option value="Blended Learning">Blended Learning</option>
-              <option value="Project Based Learning">Project Based Learning</option>
-              <option value="Problem Based Learning">Problem Based Learning</option>
+            <label>Target Peserta Didik <span class="text-danger">*</span></label>
+            <select v-model="form.target_peserta" class="input-text" required>
+              <option value="Peserta Didik Reguler">Peserta Didik Reguler</option>
+              <option value="Peserta Didik dengan Kesulitan Belajar">Peserta Didik dengan Kesulitan Belajar</option>
+              <option value="Peserta Didik Pencapaian Tinggi (Cerdas Istimewa)">Peserta Didik Pencapaian Tinggi (Cerdas Istimewa)</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label>Target Peserta Didik <span class="text-danger">*</span></label>
-            <input v-model="form.target_peserta" type="text" class="input-text" required />
+            <label>Model Pembelajaran <span class="text-danger">*</span></label>
+            <select v-model="form.model_pembelajaran" class="input-text" required>
+              <option value="">-- Pilih Model --</option>
+              <option value="Tatap Muka">Tatap Muka</option>
+              <option value="PJJ Daring">PJJ Daring / Online</option>
+              <option value="PJJ Luring">PJJ Luring / Offline</option>
+              <option value="Project Based Learning">Project Based Learning (PjBL)</option>
+              <option value="Problem Based Learning">Problem Based Learning (PBL)</option>
+              <option value="Discovery Learning">Discovery Learning</option>
+            </select>
           </div>
         </div>
 
-        <div class="form-group margin-top-25">
-          <label>Pertanyaan Pemantik</label>
-          <textarea v-model="form.pertanyaan_pemantik" class="input-textarea" rows="2" placeholder="Pertanyaan untuk memancing rasa ingin tahu siswa..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Pemahaman Bermakna</label>
-          <textarea v-model="form.pemahaman_bermakna" class="input-textarea" rows="2" placeholder="Manfaat yang akan diperoleh siswa setelah proses pembelajaran..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Sarana & Prasarana</label>
-          <textarea v-model="form.sarana_prasarana" class="input-textarea" rows="2" placeholder="Proyektor, Laptop, Buku Paket, dll..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Lembar Kerja Peserta Didik (LKPD)</label>
-          <textarea v-model="form.lkpd" class="input-textarea" rows="2" placeholder="Panduan tugas atau instruksi kerja kelompok/mandiri siswa..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Glosarium & Daftar Pustaka</label>
-          <textarea v-model="form.glosarium_pustaka" class="input-textarea" rows="2" placeholder="Definisi istilah penting dan sumber referensi buku/website..."></textarea>
-        </div>
-
-
+        <!-- 2. TUJUAN PEMBELAJARAN (TP) -->
         <div class="section-header margin-top-25">
           <h3><i class="fa-solid fa-bullseye"></i> Target Tujuan Pembelajaran (TP)</h3>
           <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">
@@ -87,13 +68,11 @@
         </div>
         
         <div class="tp-selection-container">
-          
           <div v-if="listCp.length === 0" class="empty-state-small">
             Memuat data Elemen & TP, atau data tidak tersedia...
           </div>
 
           <div v-for="cp in listCp" :key="cp.id" class="cp-group-card">
-            
             <div class="cp-header">
               <i class="fa-solid fa-layer-group"></i> 
               <strong>Elemen: {{ cp.elemen || cp.deskripsi }}</strong>
@@ -116,22 +95,40 @@
                 Belum ada TP untuk elemen ini.
               </div>
             </div>
-            
           </div>
         </div>
 
-        <div style="margin-top: 15px; padding: 15px; background: #e3f2fd; border: 1px dashed #1565c0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <strong style="color: #1565c0;"><i class="fa-solid fa-robot"></i> Asisten AI Modul Ajar</strong>
-            <p style="margin: 4px 0 0 0; font-size: 13px; color: #555;">
-              Bingung mengisi Pemahaman Bermakna, Pertanyaan Pemantik, & Kegiatan? Biarkan AI membantu Anda merancangnya berdasarkan TP yang dipilih.
-            </p>
+        <!-- 3. PROFIL PELAJAR PANCASILA (Ditambahkan sesuai halaman Edit) -->
+        <div class="section-header margin-top-25">
+          <h3><i class="fa-solid fa-users"></i> Profil Pelajar Pancasila</h3>
+        </div>
+        <div class="pancasila-grid">
+          <div 
+            v-for="profil in daftarProfilPancasila" 
+            :key="profil"
+            class="pancasila-item"
+            :class="{'selected': form.profil_pancasila.includes(profil)}"
+            @click="togglePancasila(profil)"
+          >
+            <i class="fa-solid" :class="form.profil_pancasila.includes(profil) ? 'fa-check-circle' : 'fa-circle'"></i>
+            {{ profil }}
           </div>
-          <button @click.prevent="salinPromptAI" style="background: #1565c0; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <i class="fa-solid fa-copy"></i> Buat & Salin Prompt AI
-          </button>
         </div>
 
+        <!-- 4. PEMAHAMAN & PERTANYAAN -->
+        <div class="section-header margin-top-25">
+          <h3><i class="fa-solid fa-lightbulb"></i> Pemahaman & Pertanyaan</h3>
+        </div>
+        <div class="form-group">
+          <label>Pemahaman Bermakna</label>
+          <textarea v-model="form.pemahaman_bermakna" class="input-textarea" rows="3" placeholder="Contoh: Manusia senantiasa membutuhkan bantuan orang lain..."></textarea>
+        </div>
+        <div class="form-group margin-top-15">
+          <label>Pertanyaan Pemantik</label>
+          <textarea v-model="form.pertanyaan_pemantik" class="input-textarea" rows="3" placeholder="Contoh: Apa yang terjadi jika kita tidak mematuhi rambu lalu lintas?"></textarea>
+        </div>
+
+        <!-- 5. SKENARIO KEGIATAN PEMBELAJARAN -->
         <div class="section-header margin-top-25">
           <h3><i class="fa-solid fa-list-ol"></i> Skenario Kegiatan Pembelajaran</h3>
           <p style="margin: 5px 0 0 0; font-size: 13px; color: #666;">
@@ -172,19 +169,52 @@
             </div>
           </div>
         </div>
-<button @click.prevent="tambahKegiatan" class="btn-tambah-kegiatan">
+        <button @click.prevent="tambahKegiatan" class="btn-tambah-kegiatan">
           <i class="fa-solid fa-plus"></i> Tambah Tahapan Kegiatan Baru
         </button>
+
+        <!-- 6. KOMPONEN LAMPIRAN -->
+        <div class="section-header margin-top-25">
+          <h3><i class="fa-solid fa-book-open"></i> Komponen Lampiran</h3>
+        </div>
+        <div class="form-group">
+          <label>Sarana & Prasarana</label>
+          <textarea v-model="form.sarana_prasarana" class="input-textarea" rows="3" placeholder="Contoh: Laptop, Proyektor, Papan Tulis, Buku Paket"></textarea>
+        </div>
+        <div class="form-group margin-top-15">
+          <label>Lembar Kerja Peserta Didik (LKPD)</label>
+          <textarea v-model="form.lkpd" class="input-textarea" rows="3" placeholder="Deskripsikan atau tautkan link LKPD di sini..."></textarea>
+        </div>
+        <div class="form-group margin-top-15">
+          <label>Glosarium & Daftar Pustaka</label>
+          <textarea v-model="form.glosarium_pustaka" class="input-textarea" rows="3" placeholder="Contoh: Adaptasi: Penyesuaian diri..."></textarea>
+        </div>
+
+        <!-- 7. ASISTEN AI -->
+        <div style="margin-top: 25px; padding: 15px; background: #e3f2fd; border: 1px dashed #1565c0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <strong style="color: #1565c0;"><i class="fa-solid fa-robot"></i> Asisten AI Modul Ajar</strong>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #555;">
+              Bingung mengisi komponen modul? Biarkan AI membantu Anda merancangnya berdasarkan TP yang dipilih.
+            </p>
+          </div>
+          <button @click.prevent="salinPromptAI" style="background: #1565c0; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <i class="fa-solid fa-copy"></i> Buat & Salin Prompt AI
+          </button>
+        </div>
+
+        <!-- 8. BANK SOAL -->
         <div class="section-header margin-top-25">
           <h3><i class="fa-solid fa-file-signature"></i> Hubungkan Soal Asesmen (Dari Bank Soal)</h3>
         </div>
-<div class="soal-selection-box">
+        <div class="soal-selection-box">
           <table class="table-soal" v-if="opsiSoal.length > 0">
             <thead>
               <tr>
                 <th width="50">Pilih</th>
                 <th width="120">Jenis Asesmen</th>
-                <th width="120">Kode TP</th> <th>Pertanyaan</th>
+                <th width="120">Kode TP</th> 
+                <th>Pertanyaan</th>
                 <th width="100">Kesulitan</th>
               </tr>
             </thead>
@@ -193,7 +223,7 @@
                 <td style="text-align: center;">
                   <input type="checkbox" :value="soal.id" v-model="form.bank_soal_ids" />
                 </td>
-                <td><span class="badge-jenis">{{ soal.jenis_asesmen }}</span></td>
+                <td><span class="badge-jenis">{{ soal.jenis_asesmen || soal.tipe_soal }}</span></td>
                 
                 <td>
                   <span v-if="soal.tp_id && getKodeTp(soal.tp_id) !== '-'" class="badge-kode-tp">
@@ -202,8 +232,8 @@
                   <span v-else class="text-muted">-</span>
                 </td>
 
-                <td class="text-left">{{ soal.pertanyaan }}</td>
-                <td><span class="badge-level">{{ soal.tingkat_kesulitan }}</span></td>
+                <td class="text-left"><div v-html="soal.pertanyaan" style="font-size: 13px; color: #444; max-height: 80px; overflow: hidden;"></div></td>
+                <td><span class="badge-level" :class="soal.tingkat_kesulitan?.toLowerCase()">{{ soal.tingkat_kesulitan }}</span></td>
               </tr>
             </tbody>
           </table>
@@ -212,8 +242,7 @@
           </p>
         </div>
 
-
-        <div class="form-actions margin-top-25">
+        <div class="action-footer margin-top-25">
           <button type="button" @click="batal" class="btn-cancel">Batal</button>
           <button type="submit" class="btn-submit" :disabled="isSaving">
             <i class="fa-solid fa-save"></i> {{ isSaving ? 'Menyimpan...' : 'Simpan Modul Ajar' }}
@@ -239,7 +268,17 @@ const mapelId = ref(route.query.mapel_id || '');
 
 const listCp = ref([]);
 const opsiTp = ref([]);
-const opsiSoal = ref([]); // Menampung list bank_soals dari backend
+const opsiSoal = ref([]); 
+
+// Array Pilihan Profil Pancasila
+const daftarProfilPancasila = [
+  'Beriman, Bertakwa kepada Tuhan YME, dan Berakhlak Mulia',
+  'Berkebinekaan Global',
+  'Bergotong Royong',
+  'Mandiri',
+  'Bernalar Kritis',
+  'Kreatif'
+];
 
 // Form State Lengkap
 const form = ref({
@@ -250,20 +289,19 @@ const form = ref({
   target_peserta: 'Peserta Didik Reguler',
   model_pembelajaran: '',
   pertanyaan_pemantik: '',
-  pemahaman_bermakna: '', // Kolom baru terisi
+  pemahaman_bermakna: '',
   sarana_prasarana: '',
-  lkpd: '',               // Kolom baru terisi
-  glosarium_pustaka: '',  // Kolom baru terisi
-  profil_pancasila: ['Beriman, Bertakwa', 'Mandiri'],
+  lkpd: '',              
+  glosarium_pustaka: '',  
+  profil_pancasila: [], // Dikosongkan agar interaktif via grid Pancasila
   tujuan_pembelajaran_ids: [],
-  bank_soal_ids: [], // 🟢 IDs soal yang diceklis akan masuk ke sini untuk mengisi tabel pivot `modul_ajar_soals`
+  bank_soal_ids: [], 
   kegiatan_pembelajaran: [
     { tahap: 'Pendahuluan', durasi: '', aktivitas: '' },
     { tahap: 'Kegiatan Inti', durasi: '', aktivitas: '' },
     { tahap: 'Penutup', durasi: '', aktivitas: '' }
   ]
 });
-
 
 const Toast = Swal.mixin({
   toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
@@ -274,6 +312,13 @@ const batal = () => router.push({ name: 'guru.modul-ajar' });
 const tambahKegiatan = () => form.value.kegiatan_pembelajaran.push({ tahap: '', durasi: '', aktivitas: '' });
 const hapusKegiatan = (index) => form.value.kegiatan_pembelajaran.splice(index, 1);
 
+// Fungsi Toggle Profil Pancasila
+const togglePancasila = (profil) => {
+  const index = form.value.profil_pancasila.indexOf(profil);
+  if (index > -1) form.value.profil_pancasila.splice(index, 1);
+  else form.value.profil_pancasila.push(profil);
+};
+
 // Ambil data TP & Daftar Soal
 const getKodeTp = (tpId) => {
   if (!tpId) return '-';
@@ -281,40 +326,33 @@ const getKodeTp = (tpId) => {
   return tpDitemukan ? tpDitemukan.kode_tp : '-';
 };
 
-// 2. Fungsi untuk memuat data pendukung
 const muatDataPendukung = async () => {
   if (!plottingId.value || !mapelId.value) return;
   
   try {
-    // Ambil list TP via endpoint KKTP
     const resKktp = await api.get('/guru/kktp', { params: { mapel_id: mapelId.value, kelas_id: plottingId.value } });
     const payload = resKktp.data.data || {};
     
     const dataCP = payload.list_cp || [];
     listCp.value = dataCP; 
 
-    // Simpan list_tp ke dalam opsiTp agar bisa dicari oleh getKodeTp()
     let tempTp = [];
     dataCP.forEach(cp => {
       if (cp.list_tp) tempTp.push(...cp.list_tp);
     });
     opsiTp.value = tempTp;
 
-    // Ambil list Soal yang sudah difilter
     const resSoal = await api.get('/guru/bank-soal', { 
       params: { 
         page: 1,
-        plotting_id: plottingId.value, // Filter mapel/plotting ke Laravel
-        per_page: 100                  // Ambil 100 data
+        plotting_id: plottingId.value, 
+        per_page: 100                  
       } 
     });
 
-    // 🟢 PENANGANAN PAGINASI LARAVEL YANG LEBIH AMAN
     if (resSoal.data.data && Array.isArray(resSoal.data.data.data)) {
-      // Jika Laravel mereturn paginate()
       opsiSoal.value = resSoal.data.data.data; 
     } else {
-      // Jika Laravel mereturn get() biasa
       opsiSoal.value = resSoal.data.data || []; 
     }
 
@@ -323,9 +361,7 @@ const muatDataPendukung = async () => {
   }
 };
 
-// Fungsi untuk merangkai dan menyalin Prompt AI
 const salinPromptAI = async () => {
-  // 1. Validasi: Pastikan ada Bab dan TP yang dipilih
   if (!form.value.bab_atau_materi) {
     Swal.fire({ icon: 'warning', title: 'Isi Bab / Materi!', text: 'Silakan isi Bab/Pokok Materi terlebih dahulu.' });
     return;
@@ -335,11 +371,9 @@ const salinPromptAI = async () => {
     return;
   }
 
-  // Ambil data tambahan untuk konteks AI
   const waktu = form.value.alokasi_waktu ? `${form.value.alokasi_waktu} Menit` : 'Sesuai jam pelajaran';
   const pertemuan = form.value.pertemuan_ke ? form.value.pertemuan_ke : '-';
 
-  // 2. Kumpulkan teks TP yang dicentang
   let teksTpTerpilih = [];
   listCp.value.forEach(cp => {
     if (cp.list_tp) {
@@ -351,10 +385,8 @@ const salinPromptAI = async () => {
     }
   });
 
-  // 3. Format teks TP menjadi list nomor
   const stringTp = teksTpTerpilih.map((teks, index) => `${index + 1}. ${teks}`).join('\n');
 
-  // 4. Susun Prompt AI (SANGAT SPESIFIK & SIMPEL)
   const promptText = `Saya sedang membuat Modul Ajar SMK untuk materi: "${form.value.bab_atau_materi}" (Pertemuan: ${pertemuan}, Waktu: ${waktu}).
 
 Tujuan Pembelajarannya adalah:
@@ -371,7 +403,6 @@ Langsung jawab persis dengan 6 format berikut:
 5. Glosarium dan Daftar Pustaka: (3-4 kata kunci dan 1-2 buku/referensi umum)
 6. Skenario Kegiatan Pembelajaran: (Tuliskan poin-poin sangat singkat untuk: Pendahuluan, Inti, Penutup)`;
 
-  // 5. Salin ke Clipboard menggunakan API Browser
   try {
     await navigator.clipboard.writeText(promptText);
     
@@ -389,6 +420,11 @@ Langsung jawab persis dengan 6 format berikut:
 };
 
 const simpanModul = async () => {
+  if (form.value.tujuan_pembelajaran_ids.length === 0) {
+    Swal.fire('Peringatan', 'Minimal pilih 1 Tujuan Pembelajaran (TP)', 'warning');
+    return;
+  }
+
   isSaving.value = true;
   try {
     await api.post('/guru/modul-ajar', form.value);
@@ -412,156 +448,55 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.content-body { padding: 30px; background-color: #fcf8f2; min-height: 100vh; }
+.content-body { padding: 30px; background-color: #fcf8f2; min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 .card-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 .margin-top-25 { margin-top: 25px; }
+.margin-top-15 { margin-top: 15px; }
 .header-buku-box { background: #1E5631; color: white; padding: 20px 30px; }
 .header-flex { display: flex; align-items: center; gap: 20px; }
 .btn-back { background: #689F38; border: none; color: white; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
 .btn-back:hover { background: #FBC02D; color: #1E5631; }
-.meta-info h2 { margin: 0 0 6px 0; color: #FBC02D; }
+.meta-info h2 { margin: 0 0 6px 0; color: #FBC02D; font-size: 20px;}
 .meta-info p { margin: 0; color: #FFE0B2; font-size: 14px; }
 
-.section-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 15px; }
-.section-header h3 { margin: 0; color: #1E5631; font-size: 16px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px; margin-bottom: 20px; }
+.section-header h3 { margin: 0; color: #1E5631; font-size: 18px; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.form-group { display: flex; flex-direction: column; margin-bottom: 15px; }
-.form-group label { font-weight: bold; margin-bottom: 8px; color: #444; font-size: 13px; }
-.input-text, .input-textarea { padding: 10px; border-radius: 6px; border: 1px solid #ccc; background: white; font-size: 14px; width: 100%; outline: none; box-sizing: border-box; }
-.input-text:focus, .input-textarea:focus { border-color: #689F38; }
+@media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+.form-group label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; font-size: 14px; }
+.input-text, .input-textarea { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid #ccc; background: white; font-size: 14px; font-family: inherit; outline: none; box-sizing: border-box; }
+.input-text:focus, .input-textarea:focus { border-color: #689F38; box-shadow: 0 0 5px rgba(104,159,56,0.3); }
 .text-danger { color: #d9534f; }
 .text-muted { color: #888; font-size: 13px; }
 
-.tp-selection-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-top: 15px;
-}
+.tp-selection-container { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
+.cp-group-card { background: #fcf8f2; border: 1px solid #c5e1a5; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+.cp-header { display: flex; align-items: flex-start; justify-content: flex-start; gap: 12px; background-color: #e8f5e9; padding: 12px 15px; border-bottom: 1px solid #c5e1a5; color: #1E5631; }
+.cp-header strong { flex: 1; white-space: normal; word-wrap: break-word; line-height: 1.5; text-align: left; font-size: 14px; }
+.cp-group-card .checkbox-grid { display: grid; grid-template-columns: 1fr; gap: 10px; padding: 15px; background-color: white; }
+.checkbox-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13.5px; line-height: 1.4; }
+.checkbox-item input[type="checkbox"] { margin-top: 3px; cursor: pointer; }
+.badge-kode-tp { font-weight: bold; color: #e65100; }
+.empty-state-small { padding: 15px; background: #fff3e0; color: #e65100; border-radius: 6px; border: 1px dashed #ffb74d; font-size: 13px; }
 
-.cp-group-card {
-  background: #fff;
-  border: 1px solid #c5e1a5;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  overflow: hidden; /* Kunci utamanya di sini agar tidak melewati batas layar */
-}
+/* Profil Pancasila Grid (Diambil dari halaman Edit) */
+.pancasila-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-top: 15px; }
+.pancasila-item { padding: 12px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; color: #555; background: #fafafa; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
+.pancasila-item:hover { border-color: #689F38; }
+.pancasila-item.selected { background: #e8f5e9; border-color: #689F38; color: #1E5631; font-weight: bold; }
+.pancasila-item i { font-size: 16px; color: #ccc; }
+.pancasila-item.selected i { color: #689F38; }
 
-/* 2. Perbaiki Header Elemen agar rapat ke kiri dan responsif */
-.cp-header {
-  display: flex;
-  align-items: flex-start; /* Sejajarkan di atas jika teksnya jadi 2 baris */
-  justify-content: flex-start; /* Pastikan merapat ke KIRI, jangan space-between */
-  gap: 12px; /* Jarak antara ikon dan teks */
-  background-color: #e8f5e9;
-  padding: 12px 15px;
-  border-bottom: 1px solid #c5e1a5;
-  color: #1E5631;
-}
-.cp-header strong {
-  flex: 1; /* Biarkan teks mengambil sisa ruang yang ada */
-  white-space: normal; /* Mengizinkan teks turun ke baris baru */
-  word-wrap: break-word; /* Memotong kata secara paksa jika ruang habis */
-  line-height: 1.5;
-  text-align: left;
-  font-size: 14px;
-}
-
-/* Memodifikasi checkbox-grid bawaan Anda */
-.cp-group-card .checkbox-grid {
-  display: grid;
-  grid-template-columns: 1fr; /* Buat 1 kolom agar teks TP yang panjang tidak terpotong */
-  gap: 10px;
-  padding: 15px;
-  background-color: white;
-}
-
-.badge-kode-tp {
-  font-weight: bold;
-  color: #e65100;
-}
-
-.empty-state-small {
-  padding: 15px;
-  background: #fff3e0;
-  color: #e65100;
-  border-radius: 6px;
-  border: 1px dashed #ffb74d;
-  font-size: 13px;
-}
-
-.kegiatan-container {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-top: 15px;
-}
-.kegiatan-box {
-  border: 1px solid #c8e6c9;
-  background-color: #f9fbe7;
-  padding: 20px;
-  border-radius: 8px;
-  position: relative;
-}
-.kegiatan-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px dashed #a5d6a7;
-  padding-bottom: 10px;
-}
-.badge-tahap-index {
-  background-color: #1E5631;
-  color: white;
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: bold;
-}
-.btn-hapus-kegiatan {
-  background: none;
-  border: none;
-  color: #d9534f;
-  font-size: 12px;
-  font-weight: bold;
-  cursor: pointer;
-}
-.btn-hapus-kegiatan:hover {
-  text-decoration: underline;
-}
-.btn-tambah-kegiatan {
-  margin-top: 15px;
-  background-color: #fff;
-  border: 2px dashed #689F38;
-  color: #1E5631;
-  padding: 10px 15px;
-  width: 100%;
-  border-radius: 8px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-.btn-tambah-kegiatan:hover {
-  background-color: #e8f5e9;
-}
-.input-textarea {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 14px;
-  line-height: 1.6;
-  resize: vertical;
-}
-
-.checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f9fbe7; padding: 15px; border-radius: 6px; border: 1px solid #c5e1a5; }
-.checkbox-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; }
-
-.kegiatan-row { display: flex; gap: 15px; align-items: center; background: #fafafa; padding: 10px 15px; border-radius: 6px; border: 1px dashed #ccc; margin-bottom: 10px; }
-.kegiatan-header { font-weight: bold; color: #689F38; min-width: 70px; font-size: 14px; }
-.btn-add-small { background: #e3f2fd; color: #1565c0; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; }
+/* Kegiatan Pembelajaran */
+.kegiatan-container { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
+.kegiatan-box { border: 1px solid #c8e6c9; background-color: #f9fbe7; padding: 20px; border-radius: 8px; position: relative; }
+.kegiatan-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #a5d6a7; padding-bottom: 10px; }
+.badge-tahap-index { background-color: #1E5631; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+.btn-hapus-kegiatan { background: none; border: none; color: #d9534f; font-size: 12px; font-weight: bold; cursor: pointer; }
+.btn-hapus-kegiatan:hover { text-decoration: underline; }
+.btn-tambah-kegiatan { margin-top: 15px; background-color: #fff; border: 2px dashed #689F38; color: #1E5631; padding: 10px 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+.btn-tambah-kegiatan:hover { background-color: #e8f5e9; }
 
 /* Styling Pilihan Soal */
 .soal-selection-box { border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; background: #fff; max-height: 300px; overflow-y: auto; }
@@ -570,11 +505,14 @@ onMounted(() => {
 .table-soal td { padding: 10px; border-bottom: 1px solid #eee; }
 .text-left { text-align: left; }
 .badge-jenis { background: #e3f2fd; color: #1565c0; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
-.badge-level { background: #689F38; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+.badge-level { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; text-transform: capitalize; background-color: #689F38; }
+.badge-level.mudah { background-color: #4caf50; }
+.badge-level.sedang { background-color: #ff9800; }
+.badge-level.sulit { background-color: #f44336; }
 
-.form-actions { display: flex; justify-content: flex-end; gap: 15px; border-top: 2px solid #e0e0e0; padding-top: 20px; }
-.btn-cancel { background: #eee; color: #555; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-.btn-submit { background: #1E5631; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+.action-footer { display: flex; justify-content: flex-end; gap: 15px; border-top: 1px solid #eee; padding-top: 20px; }
+.btn-cancel { background: #f5f5f5; color: #555; border: 1px solid #ddd; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+.btn-submit { background: #1E5631; color: white; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
 .btn-submit:hover:not(:disabled) { background: #689F38; }
-.btn-delete { background-color: #d9534f; color: white; border: none; padding: 8px; border-radius: 4px; cursor: pointer; }
+.btn-submit:disabled { background: #a5d6a7; cursor: not-allowed; }
 </style>

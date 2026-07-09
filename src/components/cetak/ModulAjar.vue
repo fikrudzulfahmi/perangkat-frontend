@@ -18,8 +18,8 @@
             <tr><td class="cell-label bold-text">Institusi</td><td class="cell-separator">:</td><td>{{ config?.nama_sekolah || '-' }}</td></tr>
             <tr><td class="cell-label bold-text">Mata Pelajaran</td><td class="cell-separator">:</td><td>{{ guru?.mapel || '-' }}</td></tr>
             <tr><td class="cell-label bold-text">Bab / Materi</td><td class="cell-separator">:</td><td class="bold-text">{{ modul.bab_atau_materi }}</td></tr>
-            <tr><td class="cell-label bold-text">Fase / Kelas</td><td class="cell-separator">:</td><td>{{ guru?.kelas || '-' }}</td></tr>
-            <tr><td class="cell-label bold-text">Alokasi Waktu</td><td class="cell-separator">:</td><td>{{ modul.alokasi_waktu }} Menit</td></tr>
+            <tr><td class="cell-label bold-text">Fase / Kelas</td><td class="cell-separator">:</td><td>{{ guru?.fase || 'F' }} / {{ guru?.kelas || '-' }}</td></tr>
+            <tr><td class="cell-label bold-text">Alokasi Waktu</td><td class="cell-separator">:</td><td>{{ modul.alokasi_waktu }}</td></tr>
             <tr><td class="cell-label bold-text">Pertemuan Ke</td><td class="cell-separator">:</td><td>{{ modul.pertemuan_ke }}</td></tr>
           </tbody>
         </table>
@@ -33,17 +33,17 @@
 
         <div class="sub-section">
           <h4 class="sub-title">2. Sarana dan Prasarana</h4>
-          <div class="pre-text">{{ modul.sarana_prasarana }}</div>
+          <div class="pre-text">{{ modul.sarana_prasarana || '-' }}</div>
         </div>
 
         <div class="sub-section">
           <h4 class="sub-title">3. Target Peserta Didik</h4>
-          <div class="pre-text">{{ modul.target_peserta }}</div>
+          <div class="pre-text">{{ modul.target_peserta || '-' }}</div>
         </div>
 
         <div class="sub-section">
           <h4 class="sub-title">4. Model Pembelajaran</h4>
-          <div class="pre-text">{{ modul.model_pembelajaran }}</div>
+          <div class="pre-text">{{ modul.model_pembelajaran || '-' }}</div>
         </div>
       </div>
 
@@ -61,12 +61,12 @@
 
         <div class="sub-section">
           <h4 class="sub-title">2. Pemahaman Bermakna</h4>
-          <div class="pre-text">{{ modul.pemahaman_bermakna }}</div>
+          <div class="pre-text">{{ modul.pemahaman_bermakna || '-' }}</div>
         </div>
 
         <div class="sub-section">
           <h4 class="sub-title">3. Pertanyaan Pemantik</h4>
-          <div class="pre-text">{{ modul.pertanyaan_pemantik }}</div>
+          <div class="pre-text">{{ modul.pertanyaan_pemantik || '-' }}</div>
         </div>
 
         <div class="sub-section">
@@ -80,7 +80,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(kegiatan, i) in modul.kegiatan_pembelajaran" :key="i">
+              <tr v-if="!modul.kegiatan_pembelajaran || modul.kegiatan_pembelajaran.length === 0">
+                <td colspan="3" class="text-center">Belum ada data kegiatan pembelajaran.</td>
+              </tr>
+              <tr v-else v-for="(kegiatan, i) in modul.kegiatan_pembelajaran" :key="i">
                 <td class="bold-text text-center">{{ kegiatan.tahap }}</td>
                 <td class="pre-text">{{ kegiatan.aktivitas }}</td>
                 <td class="text-center">{{ kegiatan.durasi }}</td>
@@ -88,19 +91,49 @@
             </tbody>
           </table>
         </div>
+
+        <div class="sub-section break-before-if-needed">
+          <h4 class="sub-title">5. Asesmen / Penilaian</h4>
+          
+          <div v-if="!modul.bank_soals || modul.bank_soals.length === 0" class="pre-text">
+            Belum ada data butir soal asesmen untuk modul ini.
+          </div>
+          
+          <div v-else class="soal-list">
+            <div v-for="(soal, sIdx) in modul.bank_soals" :key="sIdx" class="soal-item">
+              <div class="soal-header">
+                <strong>{{ sIdx + 1 }}. Asesmen {{ soal.jenis_asesmen }}</strong> ({{ soal.tipe_soal }}) - Bobot: {{ soal.bobot_nilai }}
+              </div>
+              <div class="soal-pertanyaan pre-text">{{ soal.pertanyaan }}</div>
+              
+              <ol v-if="soal.tipe_soal === 'Pilihan Ganda' && soal.pilihan_jawaban" type="A" class="pilihan-ganda">
+                <li v-for="(pil, pIdx) in soal.pilihan_jawaban" :key="pIdx">{{ pil }}</li>
+              </ol>
+
+              <div class="soal-kunci">
+                <strong>Kunci Jawaban:</strong> <span class="pre-text-inline">{{ soal.kunci_jawaban }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <h4 class="sub-title">6. Pengayaan dan Remedial</h4>
+          <div class="pre-text">{{ modul.pengayaan_remedial || 'Siswa yang belum tuntas diberikan remedial, sedangkan siswa yang sudah tuntas diberikan pengayaan.' }}</div>
+        </div>
       </div>
 
-      <div class="modul-section break-before section-lampiran">
+      <div class="modul-section break-before-if-needed section-lampiran">
         <h3 class="section-title">C. LAMPIRAN</h3>
         
         <div class="sub-section">
           <h4 class="sub-title">1. Lembar Kerja Peserta Didik (LKPD)</h4>
-          <div class="pre-text">{{ modul.lkpd }}</div>
+          <div class="pre-text">{{ modul.lkpd || '-' }}</div>
         </div>
 
         <div class="sub-section">
           <h4 class="sub-title">2. Glosarium & Daftar Pustaka</h4>
-          <div class="pre-text">{{ modul.glosarium_pustaka }}</div>
+          <div class="pre-text">{{ modul.glosarium_pustaka || '-' }}</div>
         </div>
       </div>
 
@@ -113,7 +146,7 @@ defineProps(['config', 'guru', 'modulList']);
 </script>
 
 <style scoped>
-/* KONFIGURASI UMUM MENYAMAKAN ATP.VUE & CP.VUE */
+/* KONFIGURASI UMUM */
 .modul-container {
   font-family: Arial, sans-serif;
   color: #000;
@@ -170,19 +203,44 @@ defineProps(['config', 'guru', 'modulList']);
 
 /* TEKS DINAMIS DATABASE - AMAN UNTUK DIV DAN TABEL */
 .pre-text {
-  white-space: pre-line !important;       /* Mengabaikan spasi error database tapi tetap membaca enter */
+  white-space: pre-line !important;
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
-  word-break: break-all !important;      /* KUNCI: Memaksa kata patah ke bawah jika menyentuh ujung kanan */
+  word-break: break-word !important; 
   max-width: 100% !important;             
   box-sizing: border-box !important;      
   font-family: Arial, sans-serif;
   font-size: 14px;
   text-align: justify;
   line-height: 1.5;
+  background: #fff;
+}
+.pre-text-inline {
+  white-space: pre-line !important;
 }
 ul { margin: 5px 0; padding-left: 20px; }
 li { font-size: 14px; text-align: justify; margin-bottom: 6px; line-height: 1.5; }
+
+/* STYLE KHUSUS ASESMEN (BANK SOAL) */
+.soal-list { margin-top: 10px; }
+.soal-item { 
+  margin-bottom: 15px; 
+  padding-bottom: 10px; 
+  border-bottom: 1px dashed #ccc;
+  page-break-inside: avoid; /* Cegah soal terbelah di 2 halaman */
+}
+.soal-item:last-child { border-bottom: none; }
+.soal-header { font-size: 14px; margin-bottom: 5px; color: #333;}
+.soal-pertanyaan { font-size: 14px; margin-bottom: 8px; font-weight: 500;}
+.pilihan-ganda { margin: 5px 0 10px 0; padding-left: 20px; }
+.pilihan-ganda li { font-size: 14px; margin-bottom: 4px; text-align: left;}
+.soal-kunci { 
+  font-size: 13px; 
+  background-color: #f9f9f9; 
+  padding: 8px; 
+  border-left: 3px solid #1E5631;
+  margin-top: 5px;
+}
 
 /* UTILITY CLASSES */
 .bold-text { font-weight: bold; }
@@ -194,13 +252,16 @@ li { font-size: 14px; text-align: justify; margin-bottom: 6px; line-height: 1.5;
   page-break-before: always !important; 
   break-before: page !important; 
 }
+.break-before-if-needed {
+  page-break-inside: auto !important;
+}
 
 /* DESAIN TABEL IDENTITAS */
 .identity-table { 
   width: 100% !important; 
   border-collapse: collapse; 
   margin-bottom: 25px; 
-  table-layout: fixed !important;        /* KUNCI: Mengunci lebar tabel agar tidak melar */
+  table-layout: fixed !important;
 }
 .identity-table td { 
   border: 1px solid #999; 
@@ -219,7 +280,7 @@ li { font-size: 14px; text-align: justify; margin-bottom: 6px; line-height: 1.5;
   border-collapse: collapse; 
   margin-top: 10px; 
   page-break-inside: auto; 
-  table-layout: fixed !important;        /* KUNCI: Mengunci lebar tabel agar tidak melar */
+  table-layout: fixed !important; 
 }
 .data-table th { background-color: #f5f5f5; border: 1px solid #000; padding: 10px; font-size: 14px; font-weight: bold; }
 .data-table td { 
