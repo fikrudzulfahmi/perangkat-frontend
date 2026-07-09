@@ -98,7 +98,7 @@
           </div>
         </div>
 
-        <!-- 3. PROFIL PELAJAR PANCASILA (Ditambahkan sesuai halaman Edit) -->
+        <!-- 3. PROFIL PELAJAR PANCASILA -->
         <div class="section-header margin-top-25">
           <h3><i class="fa-solid fa-users"></i> Profil Pelajar Pancasila</h3>
         </div>
@@ -203,43 +203,58 @@
           </button>
         </div>
 
-        <!-- 8. BANK SOAL -->
+        <!-- 8. ASESMEN & PENGAYAAN/REMEDIAL (BARU) -->
         <div class="section-header margin-top-25">
-          <h3><i class="fa-solid fa-file-signature"></i> Hubungkan Soal Asesmen (Dari Bank Soal)</h3>
+          <h3><i class="fa-solid fa-file-signature"></i> Asesmen dan Pengayaan/Remedial (Sesuai Panduan)</h3>
         </div>
-        <div class="soal-selection-box">
-          <table class="table-soal" v-if="opsiSoal.length > 0">
-            <thead>
-              <tr>
-                <th width="50">Pilih</th>
-                <th width="120">Jenis Asesmen</th>
-                <th width="120">Kode TP</th> 
-                <th>Pertanyaan</th>
-                <th width="100">Kesulitan</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="soal in opsiSoal" :key="soal.id">
-                <td style="text-align: center;">
-                  <input type="checkbox" :value="soal.id" v-model="form.bank_soal_ids" />
-                </td>
-                <td><span class="badge-jenis">{{ soal.jenis_asesmen || soal.tipe_soal }}</span></td>
-                
-                <td>
-                  <span v-if="soal.tp_id && getKodeTp(soal.tp_id) !== '-'" class="badge-kode-tp">
-                    [{{ getKodeTp(soal.tp_id) }}]
-                  </span>
-                  <span v-else class="text-muted">-</span>
-                </td>
 
-                <td class="text-left"><div v-html="soal.pertanyaan" style="font-size: 13px; color: #444; max-height: 80px; overflow: hidden;"></div></td>
-                <td><span class="badge-level" :class="soal.tingkat_kesulitan?.toLowerCase()">{{ soal.tingkat_kesulitan }}</span></td>
-              </tr>
-            </tbody>
-          </table>
-          <p v-else class="text-muted" style="padding: 10px;">
-            Belum ada data di Bank Soal untuk mata pelajaran ini. Silakan isi Bank Soal terlebih dahulu agar bisa dipilih di sini.
-          </p>
+        <div class="form-grid">
+          <!-- Bagian Asesmen -->
+          <div class="form-group-full">
+            <label>Jenis Asesmen (Centang yang Digunakan)</label>
+            <div class="asesmen-grid">
+              <!-- Diagnostik -->
+              <div class="form-check-group">
+                <input type="checkbox" v-model="form.asesmen_diagnostik" id="asesmenDiag">
+                <label for="asesmenDiag">
+                  <strong>Asesmen Diagnostik:</strong>
+                  <span>Kuesioner/Survei Singkat atau Diskusi Awal.</span>
+                </label>
+              </div>
+
+              <!-- Formatif -->
+              <div class="form-check-group">
+                <input type="checkbox" v-model="form.asesmen_formatif" id="asesmenForm">
+                <label for="asesmenForm">
+                  <strong>Asesmen Formatif:</strong>
+                  <span>Observasi, Diskusi Kelompok, Penilaian Diri, Jurnal Belajar, Kuis Singkat, Umpan Balik Teman Sebaya.</span>
+                </label>
+              </div>
+
+              <!-- Sumatif -->
+              <div class="form-check-group">
+                <input type="checkbox" v-model="form.asesmen_sumatif" id="asesmenSum">
+                <label for="asesmenSum">
+                  <strong>Asesmen Sumatif:</strong>
+                  <span>Proyek Akhir/Uji Kinerja, Tes Tulis Komprehensif, atau Portofolio.</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-grid margin-top-15">
+          <!-- Bagian Remedial -->
+          <div class="form-group">
+            <label>Langkah Remedial (Editable)</label>
+            <textarea v-model="form.remedial_content" class="input-textarea" rows="8" placeholder="Tuliskan poin-poin langkah remedial..."></textarea>
+          </div>
+
+          <!-- Bagian Pengayaan -->
+          <div class="form-group">
+            <label>Evaluasi Pengayaan (Editable)</label>
+            <textarea v-model="form.enrichment_content" class="input-textarea" rows="8" placeholder="Tuliskan poin-poin evaluasi pengayaan..."></textarea>
+          </div>
         </div>
 
         <div class="action-footer margin-top-25">
@@ -268,7 +283,6 @@ const mapelId = ref(route.query.mapel_id || '');
 
 const listCp = ref([]);
 const opsiTp = ref([]);
-const opsiSoal = ref([]); 
 
 // Array Pilihan Profil Pancasila
 const daftarProfilPancasila = [
@@ -282,7 +296,7 @@ const daftarProfilPancasila = [
   'Komunikasi'
 ];
 
-// Form State Lengkap
+// Form State Lengkap (sudah diperbarui)
 const form = ref({
   plotting_id: plottingId.value,
   bab_atau_materi: '',
@@ -295,9 +309,16 @@ const form = ref({
   sarana_prasarana: '',
   lkpd: '',              
   glosarium_pustaka: '',  
-  profil_pancasila: [], // Dikosongkan agar interaktif via grid Pancasila
+  profil_pancasila: [],
   tujuan_pembelajaran_ids: [],
-  bank_soal_ids: [], 
+  
+  // Field Baru Asesmen dan Remedial/Pengayaan
+  asesmen_diagnostik: false,
+  asesmen_formatif: false,
+  asesmen_sumatif: false,
+  remedial_content: '',
+  enrichment_content: '',
+
   kegiatan_pembelajaran: [
     { tahap: 'Pendahuluan', durasi: '', aktivitas: '' },
     { tahap: 'Kegiatan Inti', durasi: '', aktivitas: '' },
@@ -321,13 +342,7 @@ const togglePancasila = (profil) => {
   else form.value.profil_pancasila.push(profil);
 };
 
-// Ambil data TP & Daftar Soal
-const getKodeTp = (tpId) => {
-  if (!tpId) return '-';
-  const tpDitemukan = opsiTp.value.find(tp => tp.id === tpId);
-  return tpDitemukan ? tpDitemukan.kode_tp : '-';
-};
-
+// Ambil data TP (Bank Soal sudah dihapus)
 const muatDataPendukung = async () => {
   if (!plottingId.value || !mapelId.value) return;
   
@@ -343,20 +358,6 @@ const muatDataPendukung = async () => {
       if (cp.list_tp) tempTp.push(...cp.list_tp);
     });
     opsiTp.value = tempTp;
-
-    const resSoal = await api.get('/guru/bank-soal', { 
-      params: { 
-        page: 1,
-        plotting_id: plottingId.value, 
-        per_page: 100                  
-      } 
-    });
-
-    if (resSoal.data.data && Array.isArray(resSoal.data.data.data)) {
-      opsiSoal.value = resSoal.data.data.data; 
-    } else {
-      opsiSoal.value = resSoal.data.data || []; 
-    }
 
   } catch (error) {
     console.error("Gagal muat data pendukung:", error);
@@ -482,7 +483,7 @@ onMounted(() => {
 .badge-kode-tp { font-weight: bold; color: #e65100; }
 .empty-state-small { padding: 15px; background: #fff3e0; color: #e65100; border-radius: 6px; border: 1px dashed #ffb74d; font-size: 13px; }
 
-/* Profil Pancasila Grid (Diambil dari halaman Edit) */
+/* Profil Pancasila Grid */
 .pancasila-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; margin-top: 15px; }
 .pancasila-item { padding: 12px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer; font-size: 13px; color: #555; background: #fafafa; display: flex; align-items: center; gap: 10px; transition: all 0.2s; }
 .pancasila-item:hover { border-color: #689F38; }
@@ -500,17 +501,14 @@ onMounted(() => {
 .btn-tambah-kegiatan { margin-top: 15px; background-color: #fff; border: 2px dashed #689F38; color: #1E5631; padding: 10px 15px; width: 100%; border-radius: 8px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
 .btn-tambah-kegiatan:hover { background-color: #e8f5e9; }
 
-/* Styling Pilihan Soal */
-.soal-selection-box { border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; background: #fff; max-height: 300px; overflow-y: auto; }
-.table-soal { width: 100%; border-collapse: collapse; font-size: 13px; }
-.table-soal th { background: #f5f5f5; padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold; text-align: left; }
-.table-soal td { padding: 10px; border-bottom: 1px solid #eee; }
-.text-left { text-align: left; }
-.badge-jenis { background: #e3f2fd; color: #1565c0; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 11px; }
-.badge-level { padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; text-transform: capitalize; background-color: #689F38; }
-.badge-level.mudah { background-color: #4caf50; }
-.badge-level.sedang { background-color: #ff9800; }
-.badge-level.sulit { background-color: #f44336; }
+/* CSS BARU: Asesmen dan Pengayaan/Remedial */
+.form-group-full { grid-column: 1 / -1; }
+.asesmen-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.form-check-group { display: flex; align-items: flex-start; gap: 10px; padding: 10px; background: #fafafa; border: 1px solid #eee; border-radius: 6px; }
+.form-check-group input[type="checkbox"] { margin-top: 4px; cursor: pointer;}
+.form-check-group label { margin-bottom: 0 !important; cursor: pointer; }
+.form-check-group label strong { display: block; color: #1E5631; font-size: 14px; }
+.form-check-group label span { color: #666; font-size: 13px; font-weight: normal; }
 
 .action-footer { display: flex; justify-content: flex-end; gap: 15px; border-top: 1px solid #eee; padding-top: 20px; }
 .btn-cancel { background: #f5f5f5; color: #555; border: 1px solid #ddd; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }

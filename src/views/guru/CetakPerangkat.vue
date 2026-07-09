@@ -128,15 +128,15 @@
           <Atp :config="settingCetak" :guru="dataGuruDynamic" :atpData="dataAtp" />
         </section>
 
-       <template v-if="showPart.modul_ajar">
-  <section 
-    v-for="(modul, index) in dataModul" 
-    :key="'modul-' + index" 
-    class="page-a4 break-before"
-  >
-    <ModulAjar :config="settingCetak" :guru="dataGuruDynamic" :modulList="[modul]" />
-  </section>
-</template>
+        <template v-if="showPart.modul_ajar">
+          <section 
+            v-for="(modul, index) in dataModul" 
+            :key="'modul-' + index" 
+            class="page-a4 break-before"
+          >
+            <ModulAjar :config="settingCetak" :guru="dataGuruDynamic" :modulList="[modul]" />
+          </section>
+        </template>
 
         <section v-if="showPart.kktp" class="page-a4 break-before">
           <Kktp 
@@ -191,18 +191,18 @@
           />
         </section>
 
-<Prosem 
-  v-if="showPart.prosem && dataProsem"
-  :prosemData="dataProsem"
-  :identity="dataGuruDynamic"
-  :settingCetak="settingCetak"
-/>
-<JurnalAgenda 
-  v-if="showPart.jurnal_agenda" 
-  :identity="dataGuruDynamic" 
-  :settingCetak="settingCetak" 
-/>
+        <Prosem 
+          v-if="showPart.prosem && dataProsem"
+          :prosemData="dataProsem"
+          :identity="dataGuruDynamic"
+          :settingCetak="settingCetak"
+        />
         
+        <JurnalAgenda 
+          v-if="showPart.jurnal_agenda" 
+          :identity="dataGuruDynamic" 
+          :settingCetak="settingCetak" 
+        />
 
         <section v-if="showPart.sekat3" class="page-a4 break-before">
           <div class="sekat-divider">
@@ -211,13 +211,33 @@
             <p>JADWAL, ABSENSI, NILAI, ANALISIS, DAYA SERAP, REMEDIAL, BUKU PEGANGAN, SOAL</p>
           </div>
         </section>
-<section v-if="showPart.jadwal_blok" class="page-a4 break-before">
-          <JadwalMengajar 
-            :config="settingCetak" 
-            :guru="dataGuruDynamic" 
-            :jadwalData="dataJadwal" 
-          />
-        </section>
+
+        <template v-if="showPart.absensi">
+          <section 
+            v-for="(item, idx) in dataAbsensiPerKelas" 
+            :key="'absensi-page-' + idx" 
+            class="page-a4 break-before"
+          >
+            <AbsensiSiswa 
+              :config="settingCetak" 
+              :guru="{ 
+                ...dataGuruDynamic, 
+                kelas: item.kelasObj.nama_kelas || item.kelasObj.nama || item.kelasObj.kelas || '-' 
+              }" 
+              :siswaData="item.siswaData" 
+            />
+          </section>
+        </template>
+
+        <template v-for="part in ['jadwal_blok', 'daftar_nilai', 'analisis_belajar', 'daya_serap', 'remedial_pengayaan', 'buku_pegangan', 'kumpulan_soal', 'analisis_butir', 'rekomendasi_soal']" :key="part">
+          <section v-if="showPart[part]" class="page-a4 break-before">
+            <div class="placeholder-page">
+              <h2 class="text-uppercase">{{ part.replace('_', ' ') }}</h2>
+              <hr/>
+              <p class="text-muted">[Konten {{ part }} akan di-render di sini]</p>
+            </div>
+          </section>
+        </template>
 
         <section v-if="showPart.sekat4" class="page-a4 break-before">
           <div class="sekat-divider">
@@ -261,7 +281,7 @@ import Rpe from '../../components/cetak/Rpe.vue';
 import Prota from '../../components/cetak/Prota.vue';
 import Prosem from '../../components/cetak/Prosem.vue';
 import JurnalAgenda from '../../components/cetak/JurnalAgenda.vue';
-import JadwalMengajar from '../../components/cetak/JadwalMengajar.vue';
+import AbsensiSiswa from '../../components/cetak/AbsensiSiswa.vue'; // <-- Import Absensi Resmi
 
 const listPloting = ref([]);
 const selectedPloting = ref('');
@@ -284,10 +304,10 @@ const dataPembiasaan = ref(null);
 const dataKaldikRpe = ref([]);
 const dataRpe = ref([]);
 const dataProsem = ref(null);
-const dataJadwal = ref([]);
+const dataAbsensiPerKelas = ref([]); // <-- State Penampung Data Siswa Per Kelas
 
 const settingCetak = ref({
-  nama_sekolah: 'SMKS ISLAM 1 KOTA BLITAR',
+  nama_sekolah: 'SMK ISLAM 1 BLITAR',
   nama_kepsek: 'Drs. Gigih Widiyanto, M.Pd',
   nip_kepsek: '-'
 });
@@ -420,7 +440,6 @@ const handlePlotingChange = async () => {
           const savedMatch = dataSavedAtp.find(a => String(a.tujuan_pembelajaran_id) === String(tp.id));
           if (savedMatch) {
             mergedAtp.push({
-              elemen: cp.elemen,
               kode_tp: tp.kode_tp || tp.kode || '-',
               deskripsi_tp: tp.deskripsi || tp.deskripsi_tp || '-',
               semester: savedMatch.semester || '-',
@@ -483,16 +502,27 @@ const handlePlotingChange = async () => {
       });
       dataProsem.value = resProsem.data?.data || null;
 
-      // --- TAMBAHKAN KODE INI UNTUK MENGAMBIL JADWAL ---
-      const resJadwal = await api.get('/guru/jadwal-mengajar', {
-        params: { 
-          tahun_pelajaran_id: activePlot.tahun_pelajaran_id,
-          // Jika API butuh ID guru langsung dari aktif ploting
-          guru_id: activePlot.guru_id 
+      // KUNCI PERBAIKAN: Tarik data siswa satu per satu berdasarkan ID Kelas di list_kelas
+      dataAbsensiPerKelas.value = [];
+      if (activePlot.list_kelas && activePlot.list_kelas.length > 0) {
+        for (const kelasObj of activePlot.list_kelas) {
+          try {
+            const resSiswa = await api.get('/guru/siswa', {
+              params: { 
+                kelas_id: kelasObj.id,
+                plotting_id: activePlot.id,
+                per_page: 100 // menarik maksimal 100 siswa agar ter-load semua
+              }
+            });
+            dataAbsensiPerKelas.value.push({
+              kelasObj: kelasObj,
+              siswaData: resSiswa.data?.data || resSiswa.data || []
+            });
+          } catch (errSiswa) {
+            console.error(`Gagal memuat siswa kelas ${kelasObj.nama_kelas || kelasObj.nama}:`, errSiswa);
+          }
         }
-      });
-      dataJadwal.value = resJadwal.data?.data || resJadwal.data || [];
-      // ------------------------------------------------
+      }
 
     } catch (error) {
       console.error("Gagal mengambil data perangkat:", error);
@@ -507,7 +537,7 @@ const handlePlotingChange = async () => {
       dataKaldikRpe.value = [];
       dataRpe.value = [];
       dataProsem.value = null;
-      dataJadwal.value = [];
+      dataAbsensiPerKelas.value = [];
     }
   }
 };
