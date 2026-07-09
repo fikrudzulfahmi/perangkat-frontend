@@ -265,12 +265,14 @@ const opsiSoal = ref([]);
 const opsiTp = ref([]); // Ditambahkan untuk menyimpan list TP
 
 const daftarProfilPancasila = [
-  'Beriman, Bertakwa kepada Tuhan YME, dan Berakhlak Mulia',
-  'Berkebinekaan Global',
-  'Bergotong Royong',
-  'Mandiri',
-  'Bernalar Kritis',
-  'Kreatif'
+  'Keimanan, Ketakwaan, dan Akhlak Mulia',
+  'Kewargaan',
+  'Penalaran Kritis',
+  'Kreativitas',
+  'Kolaborasi',
+  'Kemandirian',
+  'Kesehatan',
+  'Komunikasi'
 ];
 
 const form = ref({

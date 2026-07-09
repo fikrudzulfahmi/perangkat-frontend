@@ -272,12 +272,14 @@ const opsiSoal = ref([]);
 
 // Array Pilihan Profil Pancasila
 const daftarProfilPancasila = [
-  'Beriman, Bertakwa kepada Tuhan YME, dan Berakhlak Mulia',
-  'Berkebinekaan Global',
-  'Bergotong Royong',
-  'Mandiri',
-  'Bernalar Kritis',
-  'Kreatif'
+  'Keimanan, Ketakwaan, dan Akhlak Mulia',
+  'Kewargaan',
+  'Penalaran Kritis',
+  'Kreativitas',
+  'Kolaborasi',
+  'Kemandirian',
+  'Kesehatan',
+  'Komunikasi'
 ];
 
 // Form State Lengkap
