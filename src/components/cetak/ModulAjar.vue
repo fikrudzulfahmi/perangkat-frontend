@@ -33,7 +33,7 @@
 
         <div class="sub-section">
           <h4 class="sub-title">2. Sarana dan Prasarana</h4>
-          <div class="pre-text">{{ modul.sarana_prasarana || '-' }}</div>
+          <div class="pre-text" v-html="sanitizeHtml(modul.sarana_prasarana) || '-'"></div>
         </div>
 
         <div class="sub-section">
@@ -61,12 +61,12 @@
 
         <div class="sub-section">
           <h4 class="sub-title">2. Pemahaman Bermakna</h4>
-          <div class="pre-text">{{ modul.pemahaman_bermakna || '-' }}</div>
+          <div class="pre-text" v-html="sanitizeHtml(modul.pemahaman_bermakna) || '-'"></div>
         </div>
 
         <div class="sub-section">
           <h4 class="sub-title">3. Pertanyaan Pemantik</h4>
-          <div class="pre-text">{{ modul.pertanyaan_pemantik || '-' }}</div>
+          <div class="pre-text" v-html="sanitizeHtml(modul.pertanyaan_pemantik) || '-'"></div>
         </div>
 
         <div class="sub-section">
@@ -85,7 +85,7 @@
               </tr>
               <tr v-else v-for="(kegiatan, i) in modul.kegiatan_pembelajaran" :key="i">
                 <td class="bold-text text-center">{{ kegiatan.tahap }}</td>
-                <td class="pre-text">{{ kegiatan.aktivitas }}</td>
+                <td class="pre-text" v-html="sanitizeHtml(kegiatan.aktivitas)"></td>
                 <td class="text-center">{{ kegiatan.durasi }}</td>
               </tr>
             </tbody>
@@ -118,12 +118,12 @@
           <div class="remedial-pengayaan-box">
             <div class="rp-item">
               <strong>a. Langkah Remedial</strong>
-              <div class="pre-text">{{ modul.remedial_content || 'Tidak ada data langkah remedial yang diatur.' }}</div>
+              <div class="pre-text" v-html="sanitizeHtml(modul.remedial_content) || 'Tidak ada data langkah remedial yang diatur.'"></div>
             </div>
             
             <div class="rp-item" style="margin-top: 15px;">
               <strong>b. Evaluasi Pengayaan</strong>
-              <div class="pre-text">{{ modul.enrichment_content || 'Tidak ada data evaluasi pengayaan yang diatur.' }}</div>
+              <div class="pre-text" v-html="sanitizeHtml(modul.enrichment_content) || 'Tidak ada data evaluasi pengayaan yang diatur.'"></div>
             </div>
           </div>
         </div>
@@ -134,12 +134,12 @@
         
         <div class="sub-section">
           <h4 class="sub-title">1. Lembar Kerja Peserta Didik (LKPD)</h4>
-          <div class="pre-text">{{ modul.lkpd || '-' }}</div>
+          <div class="pre-text" v-html="sanitizeHtml(modul.lkpd) || '-'"></div>
         </div>
 
         <div class="sub-section">
           <h4 class="sub-title">2. Glosarium & Daftar Pustaka</h4>
-          <div class="pre-text">{{ modul.glosarium_pustaka || '-' }}</div>
+          <div class="pre-text" v-html="sanitizeHtml(modul.glosarium_pustaka) || '-'"></div>
         </div>
       </div>
 
@@ -148,6 +148,8 @@
 </template>
 
 <script setup>
+import { sanitizeHtml } from '../../utils/sanitizeHtml';
+
 defineProps(['config', 'guru', 'modulList']);
 </script>
 

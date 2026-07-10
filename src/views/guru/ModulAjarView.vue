@@ -141,7 +141,7 @@
 
                   <div class="expanded-subcard">
                     <h5><i class="fa-solid fa-lightbulb" style="color: #fbc02d;"></i> Pemahaman Bermakna</h5>
-                    <p class="text-block-detail">{{ modul.pemahaman_bermakna || 'Tidak diatur' }}</p>
+                    <div class="text-block-detail" v-html="sanitizeHtml(modul.pemahaman_bermakna) || 'Tidak diatur'"></div>
                   </div>
                 </div>
 
@@ -153,7 +153,7 @@
                         <span class="timeline-tahap-badge">{{ keg.tahap }}</span>
                         <span class="timeline-durasi-text"><i class="fa-regular fa-clock"></i> {{ keg.durasi }}</span>
                       </div>
-                      <div class="timeline-aktivitas-text pre-wrapped-text">{{ keg.aktivitas }}</div>
+                      <div class="timeline-aktivitas-text" v-html="sanitizeHtml(keg.aktivitas)"></div>
                     </div>
                   </div>
                   <p v-else class="empty-subtext">Skenario langkah kegiatan pembelajaran belum dibuat.</p>
@@ -162,34 +162,34 @@
                 <div class="expanded-grid margin-top-15">
                   <div class="expanded-subcard">
                     <h5><i class="fa-solid fa-file-pen" style="color: #1565c0;"></i> Lembar Kerja Peserta Didik (LKPD)</h5>
-                    <p class="pre-wrapped-text">{{ modul.lkpd || 'Tidak diatur' }}</p>
+                    <div class="pre-wrapped-text" v-html="sanitizeHtml(modul.lkpd) || 'Tidak diatur'"></div>
                   </div>
 
                   <div class="expanded-subcard">
                     <h5><i class="fa-solid fa-book-atlas" style="color: #7b1fa2;"></i> Glosarium & Daftar Pustaka</h5>
-                    <p class="pre-wrapped-text">{{ modul.glosarium_pustaka || 'Tidak diatur' }}</p>
+                    <div class="pre-wrapped-text" v-html="sanitizeHtml(modul.glosarium_pustaka) || 'Tidak diatur'"></div>
                   </div>
                 </div>
 
                 <div class="expanded-footer-info remedial-box margin-top-15">
                   <div class="info-item">
                     <strong style="color: #d9534f;">🔄 Langkah Remedial:</strong>
-                    <p class="pre-wrapped-text">{{ modul.remedial_content || 'Tidak diatur' }}</p>
+                    <div class="pre-wrapped-text" v-html="sanitizeHtml(modul.remedial_content) || 'Tidak diatur'"></div>
                   </div>
                   <div class="info-item">
                     <strong style="color: #0277bd;">🚀 Evaluasi Pengayaan:</strong>
-                    <p class="pre-wrapped-text">{{ modul.enrichment_content || 'Tidak diatur' }}</p>
+                    <div class="pre-wrapped-text" v-html="sanitizeHtml(modul.enrichment_content) || 'Tidak diatur'"></div>
                   </div>
                 </div>
 
                 <div class="expanded-footer-info margin-top-15">
                   <div class="info-item">
                     <strong>💡 Pertanyaan Pemantik:</strong>
-                    <p>{{ modul.pertanyaan_pemantik || 'Tidak diatur' }}</p>
+                    <div v-html="sanitizeHtml(modul.pertanyaan_pemantik) || 'Tidak diatur'"></div>
                   </div>
                   <div class="info-item">
                     <strong>🛠️ Sarana & Prasarana:</strong>
-                    <p>{{ modul.sarana_prasarana || 'Tidak diatur' }}</p>
+                    <div v-html="sanitizeHtml(modul.sarana_prasarana) || 'Tidak diatur'"></div>
                   </div>
                 </div>
 
@@ -208,6 +208,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../services/api'; 
 import Swal from 'sweetalert2';
+import { sanitizeHtml } from '../../utils/sanitizeHtml';
 
 const router = useRouter();
 

@@ -31,6 +31,7 @@
       @blur="isFocused = false"
       @keyup="refreshFormatState"
       @mouseup="refreshFormatState"
+      @paste="onPaste"
     ></div>
   </div>
 </template>
@@ -85,6 +86,16 @@ function exec(command) {
   document.execCommand(command, false, null);
   onInput();
   refreshFormatState();
+}
+
+// Paksa konten yang di-paste (dari Word, halaman web lain, dsb) jadi teks polos.
+// Ini mencegah markup asing/berbahaya ikut tersimpan, dan hasil paste tetap rapi
+// mengikuti gaya form ini. User masih bisa menerapkan Bold/Underline/List manual setelahnya.
+function onPaste(e) {
+  e.preventDefault();
+  const teks = (e.clipboardData || window.clipboardData).getData('text/plain');
+  document.execCommand('insertText', false, teks);
+  onInput();
 }
 
 function refreshFormatState() {
