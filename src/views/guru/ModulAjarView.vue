@@ -365,6 +365,9 @@ onMounted(() => {
 /* Sub-card & Grid Untuk Expand Area */
 .row-expanded-container { background-color: #fdfaf6; }
 .expanded-cell { border-left: 5px solid #1E5631; padding: 20px !important; }
+.expanded-cell :deep(table) { border-collapse: collapse; width: 100%; margin: 8px 0; }
+.expanded-cell :deep(td), .expanded-cell :deep(th) { border: 1px solid #ddd; padding: 6px 8px; font-size: 12.5px; }
+.expanded-cell :deep(th) { background: #f4f8ee; font-weight: bold; }
 .expanded-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 15px; }
 @media (max-width: 768px) { .expanded-grid { grid-template-columns: 1fr; } }
 

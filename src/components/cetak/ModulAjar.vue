@@ -226,6 +226,9 @@ defineProps(['config', 'guru', 'modulList']);
 .pre-text-inline {
   white-space: pre-line !important;
 }
+.pre-text :deep(table) { border-collapse: collapse; width: 100%; margin: 6px 0; }
+.pre-text :deep(td), .pre-text :deep(th) { border: 1px solid #000; padding: 6px 8px; font-size: 13px; }
+.pre-text :deep(th) { background: #f5f5f5; font-weight: bold; }
 ul { margin: 5px 0; padding-left: 20px; }
 li { font-size: 14px; text-align: justify; margin-bottom: 6px; line-height: 1.5; }
 

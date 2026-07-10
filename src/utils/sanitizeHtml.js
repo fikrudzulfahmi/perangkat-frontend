@@ -10,7 +10,8 @@
 
 const ALLOWED_TAGS = new Set([
     'B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE',
-    'OL', 'UL', 'LI', 'BR', 'P', 'DIV', 'SPAN'
+    'OL', 'UL', 'LI', 'BR', 'P', 'DIV', 'SPAN',
+    'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH'
 ]);
 
 export function sanitizeHtml(html) {
