@@ -120,11 +120,11 @@
         </div>
         <div class="form-group">
           <label>Pemahaman Bermakna</label>
-          <textarea v-model="form.pemahaman_bermakna" class="input-textarea" rows="3" placeholder="Contoh: Manusia senantiasa membutuhkan bantuan orang lain..."></textarea>
+          <RichTextEditor v-model="form.pemahaman_bermakna" :rows="3" placeholder="Contoh: Manusia senantiasa membutuhkan bantuan orang lain..." />
         </div>
         <div class="form-group margin-top-15">
           <label>Pertanyaan Pemantik</label>
-          <textarea v-model="form.pertanyaan_pemantik" class="input-textarea" rows="3" placeholder="Contoh: Apa yang terjadi jika kita tidak mematuhi rambu lalu lintas?"></textarea>
+          <RichTextEditor v-model="form.pertanyaan_pemantik" :rows="3" placeholder="Contoh: Apa yang terjadi jika kita tidak mematuhi rambu lalu lintas?" />
         </div>
 
         <div class="section-header margin-top-25">
@@ -157,13 +157,11 @@
 
             <div class="form-group" style="margin-top: 15px;">
               <label>Langkah-Langkah Aktivitas <span class="text-danger">*</span></label>
-              <textarea 
-                v-model="kegiatan.aktivitas" 
-                class="input-textarea" 
-                rows="5" 
-                required 
+              <RichTextEditor
+                v-model="kegiatan.aktivitas"
+                :rows="5"
                 placeholder="1. Guru membuka kelas...&#10;2. Siswa dibagi kelompok...&#10;3. Dst..."
-              ></textarea>
+              />
             </div>
           </div>
         </div>
@@ -176,11 +174,11 @@
         </div>
         <div class="form-group">
           <label>Sarana & Prasarana</label>
-          <textarea v-model="form.sarana_prasarana" class="input-textarea" rows="3" placeholder="Contoh: Laptop, Proyektor, Papan Tulis, Buku Paket"></textarea>
+          <RichTextEditor v-model="form.sarana_prasarana" :rows="3" placeholder="Contoh: Laptop, Proyektor, Papan Tulis, Buku Paket" />
         </div>
         <div class="form-group margin-top-15">
           <label>Lembar Kerja Peserta Didik (LKPD)</label>
-          <textarea v-model="form.lkpd" class="input-textarea" rows="3" placeholder="Deskripsikan atau tautkan link LKPD di sini..."></textarea>
+          <RichTextEditor v-model="form.lkpd" :rows="3" placeholder="Deskripsikan atau tautkan link LKPD di sini..." />
         </div>
         
         <div class="form-group margin-top-15">
@@ -190,7 +188,7 @@
               <i class="fa-solid fa-book"></i> Ambil dari Pegangan Guru
             </button>
           </div>
-          <textarea v-model="form.glosarium_pustaka" class="input-textarea" rows="4" placeholder="Contoh: Adaptasi: Penyesuaian diri..."></textarea>
+          <RichTextEditor v-model="form.glosarium_pustaka" :rows="4" placeholder="Contoh: Adaptasi: Penyesuaian diri..." />
         </div>
 
         <div style="margin-top: 25px; padding: 15px; background: #e3f2fd; border: 1px dashed #1565c0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
@@ -243,12 +241,12 @@
         <div class="form-grid margin-top-15">
           <div class="form-group">
             <label>Langkah Remedial (Editable)</label>
-            <textarea v-model="form.remedial_content" class="input-textarea" rows="8" placeholder="Tuliskan poin-poin langkah remedial..."></textarea>
+            <RichTextEditor v-model="form.remedial_content" :rows="8" placeholder="Tuliskan poin-poin langkah remedial..." />
           </div>
 
           <div class="form-group">
             <label>Evaluasi Pengayaan (Editable)</label>
-            <textarea v-model="form.enrichment_content" class="input-textarea" rows="8" placeholder="Tuliskan poin-poin evaluasi pengayaan..."></textarea>
+            <RichTextEditor v-model="form.enrichment_content" :rows="8" placeholder="Tuliskan poin-poin evaluasi pengayaan..." />
           </div>
         </div>
 
@@ -370,6 +368,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import api from '../../services/api';
 import Swal from 'sweetalert2';
+import RichTextEditor from '../../components/RichTextEditor.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -573,10 +572,11 @@ const bukaModalBuku = async () => {
 const terapkanBukuKePustaka = () => {
   if (selectedBukuPegangan.value.length === 0) return;
 
-  // Jika glosarium sudah ada isinya, beri jarak enter. Jika masih kosong, langsung masukkan judulnya.
+  // Jika glosarium sudah ada isinya, beri jarak baris. Jika masih kosong, langsung masukkan judulnya.
+  // Catatan: field ini sekarang berformat HTML (dari RichTextEditor), jadi baris baru pakai <br>, bukan \n
   let teksDaftarPustaka = form.value.glosarium_pustaka 
-    ? form.value.glosarium_pustaka + "\n\nDaftar Pustaka:\n" 
-    : "Daftar Pustaka:\n";
+    ? form.value.glosarium_pustaka + "<br><br><strong>Daftar Pustaka:</strong><br>" 
+    : "<strong>Daftar Pustaka:</strong><br>";
     
   selectedBukuPegangan.value.forEach((buku, index) => {
     const judul = buku.judul_buku || 'Buku Referensi';
@@ -585,7 +585,7 @@ const terapkanBukuKePustaka = () => {
     const tahun = buku.tahun_terbit || '-';
     
     // Format penulisan pustaka APA style sederhana
-    teksDaftarPustaka += `${index + 1}. ${penulis}. (${tahun}). *${judul}*. ${penerbit}.\n`;
+    teksDaftarPustaka += `${index + 1}. ${penulis}. (${tahun}). <em>${judul}</em>. ${penerbit}.<br>`;
   });
 
   // Timpa/gabungkan isi textbox
@@ -700,9 +700,19 @@ c. Evaluasi Pengayaan (Editable): (Tuliskan poin-poin singkat bentuk evaluasi pe
   }
 };
 
+// RichTextEditor bukan elemen form asli, jadi atribut "required" bawaan HTML tidak berlaku lagi.
+// Helper ini mengecek apakah konten HTML-nya benar-benar kosong (hanya tag tanpa isi teks).
+const isKontenKosong = (html) => !html || !html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim();
+
 const simpanModul = async () => {
   if (form.value.tujuan_pembelajaran_ids.length === 0) {
     Swal.fire('Peringatan', 'Minimal pilih 1 Tujuan Pembelajaran (TP)', 'warning');
+    return;
+  }
+
+  const tahapTanpaAktivitas = form.value.kegiatan_pembelajaran.find(k => isKontenKosong(k.aktivitas));
+  if (tahapTanpaAktivitas) {
+    Swal.fire('Peringatan', `Kolom "Langkah-Langkah Aktivitas" pada tahap "${tahapTanpaAktivitas.tahap || '-'}" wajib diisi.`, 'warning');
     return;
   }
 
