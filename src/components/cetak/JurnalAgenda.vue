@@ -161,7 +161,7 @@ const tanggalCetak = computed(() => {
 
 /* PENGATURAN CETAK (PRINT) */
 @page cetak-jurnal-landscape {
-  size: A4 landscape; /* Memaksa printer mendatar */
+  size: A4; /* Memaksa printer mendatar */
   margin: 15mm;
 }
 
@@ -174,7 +174,7 @@ const tanggalCetak = computed(() => {
     padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
-    page: cetak-jurnal-landscape; /* Menghubungkan ke aturan landscape di atas */
+    /* Menghubungkan ke aturan landscape di atas */
   }
   .table-jurnal tr {
     page-break-inside: avoid !important;
