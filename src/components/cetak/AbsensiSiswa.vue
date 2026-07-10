@@ -13,9 +13,9 @@
           <td class="value">{{ config?.tahun_pelajaran || (siswaData?.[0]?.tahun_pelajaran_id ? '2026/2027' : '-') }}</td>
         </tr>
         <tr>
-          <td class="label">Kelas / Semester</td>
+          <td class="label">Kelas</td>
           <td class="separator">:</td>
-          <td class="value">{{ guru?.kelas || siswaData?.[0]?.kelas?.nama_kelas || '-' }} / {{ config?.semester || '-' }}</td>
+          <td class="value">{{ guru?.kelas || siswaData?.[0]?.kelas?.nama_kelas || '-' }}</td>
           <td class="label-right">Bulan</td>
           <td class="separator">:</td>
           <td class="value">................................................</td>
@@ -117,7 +117,7 @@ const formatNis = (nis) => {
 .identity-table .label { width: 15%; font-weight: bold; }
 .identity-table .separator { width: 2%; text-align: center; }
 .identity-table .value { width: 33%; }
-.identity-table .label-right { width: 15%; font-weight: bold; padding-left: 20px;}
+.identity-table .label-right { width: 20%; font-weight: bold; padding-left: 20px;}
 
 /* Tabel Utama (Data Absensi) */
 .data-table { 
@@ -153,8 +153,8 @@ const formatNis = (nis) => {
 
 /* Proporsi Lebar Kolom yang Pas untuk Total 22 Kolom */
 .col-no { width: 4%; }
-.col-nis { width: 10%; }
-.col-nama { width: 26%; }
+.col-nis { width: 7%; }
+.col-nama { width: 29%; }
 .date-col { width: 3%; text-align: center; } 
 .col-ket { width: 12%; } 
 .ket-col { width: 4%; text-align: center; }

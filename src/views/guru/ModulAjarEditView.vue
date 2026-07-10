@@ -59,6 +59,7 @@
               <option value="Project Based Learning">Project Based Learning (PjBL)</option>
               <option value="Problem Based Learning">Problem Based Learning (PBL)</option>
               <option value="Discovery Learning">Discovery Learning</option>
+              <option value="Deep Learning">Deep Learning</option>
             </select>
           </div>
         </div>
@@ -184,9 +185,15 @@
           <label>Lembar Kerja Peserta Didik (LKPD)</label>
           <textarea v-model="form.lkpd" class="input-textarea" rows="3" placeholder="Deskripsikan atau tautkan link LKPD di sini..."></textarea>
         </div>
+        
         <div class="form-group margin-top-15">
-          <label>Glosarium & Daftar Pustaka</label>
-          <textarea v-model="form.glosarium_pustaka" class="input-textarea" rows="3" placeholder="Contoh: Adaptasi: Penyesuaian diri..."></textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="margin-bottom: 0;">Glosarium & Daftar Pustaka</label>
+            <button type="button" @click="bukaModalBuku" class="btn-pilih-buku">
+              <i class="fa-solid fa-book"></i> Ambil dari Pegangan Guru
+            </button>
+          </div>
+          <textarea v-model="form.glosarium_pustaka" class="input-textarea" rows="4" placeholder="Contoh: Adaptasi: Penyesuaian diri..."></textarea>
         </div>
 
         <div style="margin-top: 25px; padding: 15px; background: #e3f2fd; border: 1px dashed #1565c0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
@@ -256,6 +263,52 @@
         </div>
       </form>
     </div>
+
+    <div v-if="showModalBuku" class="modal-clone-overlay">
+      <div class="modal-clone-card">
+        <div class="modal-clone-header">
+          <h3><i class="fa-solid fa-book"></i> Pilih Daftar Pegangan Guru</h3>
+          <button type="button" @click="showModalBuku = false" class="btn-close-modal">&times;</button>
+        </div>
+        <div class="modal-clone-body">
+          <p style="font-size: 13px; color: #555; margin-bottom: 15px;">
+            Silakan pilih satu atau beberapa buku pegangan di bawah ini untuk dimasukkan ke daftar pustaka modul.
+          </p>
+          
+          <div v-if="isLoadingBuku" class="text-center" style="padding: 15px 0;">
+            <i class="fa-solid fa-spinner fa-spin fa-lg" style="color: #1E5631;"></i>
+            <p style="margin-top: 5px; color: #666; font-size: 12px;">Memuat daftar buku...</p>
+          </div>
+
+          <div v-else-if="listBukuPegangan.length === 0" class="empty-clone-state">
+            <i class="fa-solid fa-book-open" style="font-size: 24px; color: #ccc; display:block; margin-bottom: 5px;"></i>
+            Belum ada data buku pegangan guru untuk mata pelajaran ini.
+          </div>
+
+          <div v-else class="checkbox-buku-container" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+            <div v-for="buku in listBukuPegangan" :key="buku.id" class="form-check-group" style="display: flex; align-items: flex-start; gap: 10px; padding: 10px; background: #fafafa; border: 1px solid #eee; border-radius: 6px;">
+              <input type="checkbox" :id="'buku_' + buku.id" :value="buku" v-model="selectedBukuPegangan">
+              <label :for="'buku_' + buku.id" style="cursor: pointer; margin: 0; display: block; width: 100%;">
+                <strong style="color: #1E5631; font-size: 13.5px; display: block; margin-bottom: 4px;">{{ buku.judul_buku }}</strong>
+                <span style="display: block; font-size: 12px; color: #666;">
+                  Penulis: {{ buku.penulis || '-' }} | Penerbit: {{ buku.penerbit || '-' }} ({{ buku.tahun_terbit || '-' }})
+                </span>
+                <span style="display: inline-block; font-size: 10px; background: #e3f2fd; color: #1565c0; padding: 2px 6px; border-radius: 4px; margin-top: 4px;">
+                  {{ buku.jenis_buku || 'Buku' }}
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-clone-footer">
+          <button type="button" @click="showModalBuku = false" class="btn-clone-batal">Batal</button>
+          <button type="button" @click="terapkanBukuKePustaka" class="btn-clone-eksekusi" :disabled="selectedBukuPegangan.length === 0">
+            <i class="fa-solid fa-check"></i> Masukkan ke Form
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -274,6 +327,12 @@ const isSaving = ref(false);
 
 const listCp = ref([]);
 const opsiTp = ref([]);
+
+// --- PERUBAHAN: STATE UNTUK FITUR BUKU PEGANGAN GURU ---
+const showModalBuku = ref(false);
+const isLoadingBuku = ref(false);
+const listBukuPegangan = ref([]);
+const selectedBukuPegangan = ref([]);
 
 const daftarProfilPancasila = [
   'Keimanan, Ketakwaan, dan Akhlak Mulia',
@@ -325,6 +384,56 @@ const togglePancasila = (profil) => {
   const index = form.value.profil_pancasila.indexOf(profil);
   if (index > -1) form.value.profil_pancasila.splice(index, 1);
   else form.value.profil_pancasila.push(profil);
+};
+
+// --- PERUBAHAN: FUNGSI BUKA MODAL DAN AMBIL DATA BUKU PEGANGAN ---
+const bukaModalBuku = async () => {
+  showModalBuku.value = true;
+  isLoadingBuku.value = true;
+  selectedBukuPegangan.value = []; // Reset pilihan sebelumnya
+
+  try {
+    const response = await api.get('/guru/buku-pegangan', {
+      // Kita panggil berdasarkan plotting_id yang aktif pada form saat ini
+      params: { plotting_id: form.value.plotting_id } 
+    });
+    listBukuPegangan.value = response.data.data || [];
+  } catch (error) {
+    console.error("Gagal memuat daftar buku:", error);
+    Swal.fire('Error', 'Gagal memuat daftar buku pegangan.', 'error');
+  } finally {
+    isLoadingBuku.value = false;
+  }
+};
+
+// --- PERUBAHAN: FUNGSI TERAPKAN BUKU KE DALAM TEXTAREA PUSTAKA ---
+const terapkanBukuKePustaka = () => {
+  if (selectedBukuPegangan.value.length === 0) return;
+
+  // Cek apakah textarea sudah ada isinya atau masih kosong, agar penempatannya rapi
+  let teksDaftarPustaka = form.value.glosarium_pustaka 
+    ? form.value.glosarium_pustaka + "\n\nDaftar Pustaka:\n" 
+    : "Daftar Pustaka:\n";
+    
+  selectedBukuPegangan.value.forEach((buku, index) => {
+    const judul = buku.judul_buku || 'Buku Referensi';
+    const penulis = buku.penulis || 'Anonim';
+    const penerbit = buku.penerbit || '-';
+    const tahun = buku.tahun_terbit || '-';
+    
+    // Format penulisan pustaka APA style sederhana
+    teksDaftarPustaka += `${index + 1}. ${penulis}. (${tahun}). *${judul}*. ${penerbit}.\n`;
+  });
+
+  // Timpa/gabungkan isi textbox
+  form.value.glosarium_pustaka = teksDaftarPustaka;
+  
+  showModalBuku.value = false; // Tutup modal
+  
+  Toast.fire({
+    icon: 'success',
+    title: 'Berhasil menyisipkan daftar pustaka buku!'
+  });
 };
 
 // Memuat data Modul yang akan diedit sekaligus mengambil data KKT/TP terkait
@@ -575,4 +684,76 @@ onMounted(() => {
 .btn-submit { background: #1E5631; color: white; border: none; padding: 12px 30px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
 .btn-submit:hover:not(:disabled) { background: #689F38; }
 .btn-submit:disabled { background: #a5d6a7; cursor: not-allowed; }
+
+/* --- PERUBAHAN CSS: Styling Fitur Pop-up Modal dan Tombol Pustaka --- */
+.btn-pilih-buku {
+  background-color: #689F38;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-pilih-buku:hover {
+  background-color: #1E5631;
+}
+
+.modal-clone-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 9999;
+}
+.modal-clone-card {
+  background: white;
+  width: 550px;
+  max-width: 90%;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  overflow: hidden;
+  animation: fadeIn 0.2s ease-out;
+}
+.modal-clone-header {
+  background: #1E5631;
+  color: white;
+  padding: 15px 20px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.modal-clone-header h3 { margin: 0; font-size: 16px; color: #FBC02D; }
+.btn-close-modal {
+  background: none; border: none; color: white; font-size: 24px; cursor: pointer; line-height: 1;
+}
+.modal-clone-body { padding: 20px; }
+.empty-clone-state {
+  text-align: center; padding: 20px; background: #f9f9f9; border: 1px dashed #ddd; border-radius: 8px; color: #777; font-size: 13px;
+}
+.modal-clone-footer {
+  padding: 15px 20px; background: #f5f5f5; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px;
+}
+.btn-clone-batal {
+  background: white; border: 1px solid #ccc; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px;
+}
+.btn-clone-eksekusi {
+  background: #1E5631; color: white; border: none; padding: 8px 18px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 13px;
+}
+.btn-clone-eksekusi:disabled {
+  background: #bcffca; color: #888; cursor: not-allowed;
+}
+
+.checkbox-buku-container::-webkit-scrollbar {
+  width: 6px;
+}
+.checkbox-buku-container::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 3px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
 </style>

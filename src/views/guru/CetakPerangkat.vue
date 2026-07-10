@@ -41,16 +41,16 @@
         <div class="scrollable-checklist">
           <div class="buku-section">
             <p class="buku-title">📂 BAGIAN UTAMA</p>
-            <label><input type="checkbox" v-model="showPart.cover" /> 1.1 Cover / Sampul Utama</label>
+            <label><input type="checkbox" v-model="showPart.cover" />Cover / Sampul Utama</label>
             <label><input type="checkbox" v-model="showPart.daftar_isi" /> Daftar Isi</label>
           </div>
 
           <div class="buku-section">
             <p class="buku-title">📂 BUKU KERJA 1</p>
             <label><input type="checkbox" v-model="showPart.sekat1" /> Sekat Buku Kerja 1</label>
-            <label><input type="checkbox" v-model="showPart.cp" /> 1.2 Capaian Pembelajaran (CP)</label>
-            <label><input type="checkbox" v-model="showPart.atp" /> 1.3 TP & ATP</label>
-            <label><input type="checkbox" v-model="showPart.modul_ajar" /> 1.4 Modul Ajar / RPP</label>
+            <label><input type="checkbox" v-model="showPart.cp" /> 1.1 Capaian Pembelajaran (CP)</label>
+            <label><input type="checkbox" v-model="showPart.atp" /> 1.2 TP & ATP</label>
+            <label><input type="checkbox" v-model="showPart.modul_ajar" /> 1.3 Modul Ajar / RPP</label>
             <label><input type="checkbox" v-model="showPart.kktp" /> 1.5 KKTP</label>
           </div>
 
@@ -211,7 +211,14 @@
             <p>JADWAL, ABSENSI, NILAI, ANALISIS, DAYA SERAP, REMEDIAL, BUKU PEGANGAN, SOAL</p>
           </div>
         </section>
-
+        
+<section v-if="showPart.jadwal_blok" class="page-a4 break-before">
+  <JadwalMengajar 
+    :config="settingCetak" 
+    :guru="dataGuruDynamic" 
+    :jadwalData="dataJadwal" 
+  />
+</section>
         <template v-if="showPart.absensi">
           <section 
             v-for="(item, idx) in dataAbsensiPerKelas" 
@@ -229,7 +236,17 @@
           </section>
         </template>
 
-        <template v-for="part in ['jadwal_blok', 'daftar_nilai', 'analisis_belajar', 'daya_serap', 'remedial_pengayaan', 'buku_pegangan', 'kumpulan_soal', 'analisis_butir', 'rekomendasi_soal']" :key="part">
+        <template v-if="showPart.daftar_nilai">
+          <section v-for="(kelasAbsen, idx) in dataAbsensiPerKelas" :key="'nilai-' + idx" class="page-a4 break-before">
+            <DaftarNilaiSiswa 
+              :config="settingCetak" 
+              :guru="{ ...dataGuruDynamic, kelas: kelasAbsen.kelasObj.nama_kelas || kelasAbsen.kelasObj.nama }" 
+              :siswaData="kelasAbsen.siswaData" 
+            />
+          </section>
+        </template>
+
+        <template v-for="part in ['analisis_belajar', 'daya_serap', 'remedial_pengayaan', 'buku_pegangan', 'kumpulan_soal', 'analisis_butir', 'rekomendasi_soal']" :key="part">
           <section v-if="showPart[part]" class="page-a4 break-before">
             <div class="placeholder-page">
               <h2 class="text-uppercase">{{ part.replace('_', ' ') }}</h2>
@@ -281,7 +298,9 @@ import Rpe from '../../components/cetak/Rpe.vue';
 import Prota from '../../components/cetak/Prota.vue';
 import Prosem from '../../components/cetak/Prosem.vue';
 import JurnalAgenda from '../../components/cetak/JurnalAgenda.vue';
+import JadwalMengajar from '../../components/cetak/JadwalMengajar.vue';
 import AbsensiSiswa from '../../components/cetak/AbsensiSiswa.vue'; // <-- Import Absensi Resmi
+import DaftarNilaiSiswa from '../../components/cetak/DaftarNilaiSiswa.vue';
 
 const listPloting = ref([]);
 const selectedPloting = ref('');
@@ -304,6 +323,7 @@ const dataPembiasaan = ref(null);
 const dataKaldikRpe = ref([]);
 const dataRpe = ref([]);
 const dataProsem = ref(null);
+const dataJadwal = ref([]);
 const dataAbsensiPerKelas = ref([]); // <-- State Penampung Data Siswa Per Kelas
 
 const settingCetak = ref({
@@ -433,13 +453,14 @@ const handlePlotingChange = async () => {
       });
       const dataSavedAtp = resAtp.data?.data || resAtp.data || [];
 
-      let mergedAtp = [];
+    let mergedAtp = [];
       dataCpArray.forEach(cp => {
         const listTp = cp.list_tp || cp.listTp || [];
         listTp.forEach(tp => {
           const savedMatch = dataSavedAtp.find(a => String(a.tujuan_pembelajaran_id) === String(tp.id));
           if (savedMatch) {
             mergedAtp.push({
+              elemen: cp.elemen || cp.deskripsi || '-', 
               kode_tp: tp.kode_tp || tp.kode || '-',
               deskripsi_tp: tp.deskripsi || tp.deskripsi_tp || '-',
               semester: savedMatch.semester || '-',
@@ -450,7 +471,26 @@ const handlePlotingChange = async () => {
         });
       });
 
+      // 1. URUTKAN DULU DATANYA BERDASARKAN NOMOR URUT
       mergedAtp.sort((a, b) => a.nomor_urut - b.nomor_urut);
+
+      // 2. BARU JALANKAN LOGIKA ROWSPAN (SETELAH DATA TERSUSUN RAPI)
+      let currentElemen = null;
+      let currentElemenIndex = -1;
+
+      mergedAtp.forEach((item, index) => {
+        if (item.elemen !== currentElemen) {
+          item.rowspan = 1;
+          item.showElemen = true; 
+          currentElemen = item.elemen;
+          currentElemenIndex = index;
+        } else {
+          item.showElemen = false; 
+          mergedAtp[currentElemenIndex].rowspan += 1; 
+        }
+      });
+
+      // 3. MASUKKAN KE STATE
       dataAtp.value = mergedAtp;
 
       const resModul = await api.get('/guru/modul-ajar', {
@@ -501,6 +541,37 @@ const handlePlotingChange = async () => {
         params: { plotting_id: activePlot.id }
       });
       dataProsem.value = resProsem.data?.data || null;
+
+
+      // ==========================================
+      // TARIK DATA JADWAL MENGAJAR (HANYA GURU TERKAIT)
+      // ==========================================
+      try {
+        const resJadwal = await api.get('/guru/jadwal-mengajar', {
+          params: {
+             tahun_pelajaran_id: activePlot.tahun_pelajaran_id
+          }
+        });
+        
+        let allJadwal = resJadwal.data?.data || resJadwal.data || [];
+        
+        // Ambil ID Guru dari ploting yang dipilih (sesuaikan dengan properti di activePlot Anda)
+        const targetGuruId = activePlot.guru_id || activePlot.id_guru || activePlot.guru?.id;
+
+        // FILTER: Ambil data jika j.guru.id (dari JSON) sama dengan targetGuruId
+        if (targetGuruId) {
+          allJadwal = allJadwal.filter(j => {
+            const jadwalGuruId = j.guru?.id || j.guru_id;
+            return String(jadwalGuruId) === String(targetGuruId);
+          });
+        }
+
+        dataJadwal.value = allJadwal;
+      } catch (errJadwal) {
+        console.error("Gagal memuat jadwal mengajar:", errJadwal);
+        dataJadwal.value = [];
+      }
+      // ==========================================
 
       // KUNCI PERBAIKAN: Tarik data siswa satu per satu berdasarkan ID Kelas di list_kelas
       dataAbsensiPerKelas.value = [];

@@ -7,7 +7,7 @@
 
     <div class="content-list">
       <div class="item-row header-row" v-if="show.cover">
-        <span class="label-text">1.1 SAMPUL / COVER UTAMA BUKU KERJA</span>
+        <span class="label-text">SAMPUL / COVER UTAMA BUKU KERJA</span>
         <span class="dots"></span>
         <span class="page-number">i</span>
       </div>
@@ -26,22 +26,22 @@
           <span class="page-number">{{ pageNumbers.sekat1 }}</span>
         </div>
         <div class="item-row" v-if="show.cp">
-          <span class="label-text">1.2 Capaian Pembelajaran (CP)</span>
+          <span class="label-text">1.1 Capaian Pembelajaran (CP)</span>
           <span class="dots"></span>
           <span class="page-number">{{ pageNumbers.cp }}</span>
         </div>
         <div class="item-row" v-if="show.atp">
-          <span class="label-text">1.3 Tujuan Pembelajaran (TP) & Alur Tujuan Pembelajaran (ATP)</span>
+          <span class="label-text">1.2 Tujuan Pembelajaran (TP) & Alur Tujuan Pembelajaran (ATP)</span>
           <span class="dots"></span>
           <span class="page-number">{{ pageNumbers.atp }}</span>
         </div>
         <div class="item-row" v-if="show.modul_ajar">
-          <span class="label-text">1.4 Modul Ajar (MA) / Rencana Pelaksanaan Pembelajaran (RPP)</span>
+          <span class="label-text">1.3 Modul Ajar (MA) / Rencana Pelaksanaan Pembelajaran (RPP)</span>
           <span class="dots"></span>
           <span class="page-number">{{ pageNumbers.modul_ajar }}</span>
         </div>
         <div class="item-row" v-if="show.kktp">
-          <span class="label-text">1.5 Kriteria Ketercapaian Tujuan Pembelajaran (KKTP)</span>
+          <span class="label-text">1.4 Kriteria Ketercapaian Tujuan Pembelajaran (KKTP)</span>
           <span class="dots"></span>
           <span class="page-number">{{ pageNumbers.kktp }}</span>
         </div>

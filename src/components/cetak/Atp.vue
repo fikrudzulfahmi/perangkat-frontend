@@ -47,7 +47,9 @@
         </tr>
         <tr v-else v-for="(item, index) in formattedAtp" :key="index">
           <td class="text-center">{{ index + 1 }}</td>
-          <td>{{ item.elemen || '-' }}</td>
+          <td v-if="item.showElemen" :rowspan="item.rowspan" class="text-center align-middle">
+  {{ item.elemen }}
+</td>
           <td class="text-justify">{{ item.deskripsi_tp || '-' }}</td>
           <td class="text-center">{{ item.alokasi_jp || 0 }} JP</td>
         </tr>

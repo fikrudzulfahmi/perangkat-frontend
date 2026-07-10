@@ -13,28 +13,28 @@
       </div>
     </div>
 
-<div class="card-box filter-card">
-  <label for="plottingSelect" class="filter-label">
-    <i class="fa-solid fa-sliders"></i> Pilih Tugas Mengajar:
-  </label>
-  <select 
-    id="plottingSelect" 
-    v-model="selectedPlottingId" 
-    @change="handlePlottingChange" 
-    class="input-filter-select"
-  >
-    <option value="">-- Silakan Pilih Mapel & Kelas --</option>
-    
-    <option 
-      v-for="plot in listPlottingRaw" 
-      :key="plot.id" 
-      :value="plot.id"
-    >
-      {{ plot.mapel || plot.nama_mapel }} 
-      ({{ formatArrayKelas(plot.list_kelas || plot.kelas || []) }})
-    </option>
-  </select>
-</div>
+    <div class="card-box filter-card">
+      <label for="plottingSelect" class="filter-label">
+        <i class="fa-solid fa-sliders"></i> Pilih Tugas Mengajar:
+      </label>
+      <select 
+        id="plottingSelect" 
+        v-model="selectedPlottingId" 
+        @change="handlePlottingChange" 
+        class="input-filter-select"
+      >
+        <option value="">-- Silakan Pilih Mapel & Kelas --</option>
+        
+        <option 
+          v-for="plot in listPlottingRaw" 
+          :key="plot.id" 
+          :value="plot.id"
+        >
+          {{ plot.mapel || plot.nama_mapel }} 
+          ({{ formatArrayKelas(plot.list_kelas || plot.kelas || []) }})
+        </option>
+      </select>
+    </div>
 
     <div v-if="!mapelId || !kelasId" class="card-box empty-state-alert">
       <i class="fa-solid fa-map-location-dot alert-icon-info"></i>
@@ -48,9 +48,15 @@
           <h3><i class="fa-solid fa-route"></i> Pemetaan Matriks TP ke dalam Semester & JP</h3>
           <p class="subtitle">Struktur ATP ini disimpan mengacu pada plot mengajar kelas terpilih.</p>
         </div>
-        <button @click="simpanSemuaATP" class="btn-save-all" :disabled="isSaving">
-          <i class="fa-solid fa-floppy-disk"></i> {{ isSaving ? 'Menyimpan...' : 'Simpan Perubahan ATP' }}
-        </button>
+        
+        <div style="display: flex; gap: 10px;">
+          <button @click="bukaModalClone" type="button" class="btn-clone-atp" :disabled="!selectedPlottingId">
+            <i class="fa-solid fa-copy"></i> Clone ATP Teman
+          </button>
+          <button @click="simpanSemuaATP" class="btn-save-all" :disabled="isSaving">
+            <i class="fa-solid fa-floppy-disk"></i> {{ isSaving ? 'Menyimpan...' : 'Simpan Perubahan ATP' }}
+          </button>
+        </div>
       </div>
 
       <div v-if="isLoading" class="loading-state">
@@ -101,44 +107,96 @@
         </table>
       </div>
 
-<div v-if="listCP.length > 0" class="card-box" style="background-color: #fdfaf6; border: 1px dashed #689F38; padding: 15px; border-radius: 8px; margin-top: 15px;">
-  <div style="display: flex; justify-content: space-between; align-items: center;">
-    <div>
-      <h4 style="margin: 0; color: #1E5631;"><i class="fa-solid fa-scale-balanced"></i> Kalkulasi Alokasi JP</h4>
-      <p style="margin: 4px 0 0 0; font-size: 13px; color: #666;">
-        Berdasarkan Rincian Minggu Efektif (RME):<br>
-        <strong>{{ totalMingguEfektif }} Minggu Efektif</strong> x <strong>{{ jpPerMinggu }} JP/Minggu</strong> = <strong>{{ targetJpTahunan }} Target JP</strong> setahun.
-      </p>
-    </div>
-    
-    <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-      <div style="font-size: 24px; font-weight: bold; color: #333;">
-        {{ totalJpTerpakai }} <span style="font-size: 16px; color: #666;">/ {{ targetJpTahunan }} JP</span>
+      <div v-if="listCP.length > 0" class="card-box" style="background-color: #fdfaf6; border: 1px dashed #689F38; padding: 15px; border-radius: 8px; margin-top: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h4 style="margin: 0; color: #1E5631;"><i class="fa-solid fa-scale-balanced"></i> Kalkulasi Alokasi JP</h4>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #666;">
+              Berdasarkan Rincian Minggu Efektif (RME):<br>
+              <strong>{{ totalMingguEfektif }} Minggu Efektif</strong> x <strong>{{ jpPerMinggu }} JP/Minggu</strong> = <strong>{{ targetJpTahunan }} Target JP</strong> setahun.
+            </p>
+          </div>
+          
+          <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+            <div style="font-size: 24px; font-weight: bold; color: #333;">
+              {{ totalJpTerpakai }} <span style="font-size: 16px; color: #666;">/ {{ targetJpTahunan }} JP</span>
+            </div>
+            
+            <div :style="{ 
+              color: jpStatus.color, 
+              backgroundColor: jpStatus.bg,
+              border: `1px solid ${jpStatus.color}`,
+              padding: '5px 12px',
+              borderRadius: '6px',
+              fontSize: '13px',
+              fontWeight: 'bold',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }">
+              <i :class="['fa-solid', jpStatus.icon]"></i>
+              {{ jpStatus.text }}
+            </div>
+          </div>
+        </div>
       </div>
-      
-      <div :style="{ 
-        color: jpStatus.color, 
-        backgroundColor: jpStatus.bg,
-        border: `1px solid ${jpStatus.color}`,
-        padding: '5px 12px',
-        borderRadius: '6px',
-        fontSize: '13px',
-        fontWeight: 'bold',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '6px'
-      }">
-        <i :class="['fa-solid', jpStatus.icon]"></i>
-        {{ jpStatus.text }}
-      </div>
-    </div>
-    </div>
-</div>
       
       <div class="footer-action-row" v-if="listCP.length > 0">
         <button @click="simpanSemuaATP" class="btn-save-all-bottom" :disabled="isSaving">
           <i class="fa-solid fa-check-double"></i> {{ isSaving ? 'Menyimpan...' : 'Finalisasi & Simpan Struktur ATP' }}
         </button>
+      </div>
+    </div>
+
+    <div v-if="showCloneModal" class="modal-overlay">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h4><i class="fa-solid fa-users"></i> Salin Struktur ATP Teman</h4>
+          <button @click="showCloneModal = false" class="close-modal-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label class="modal-label">1. Pilih Tahun Pelajaran Referensi:</label>
+            <select v-model="selectedTahunTeman" @change="handleTahunTemanChange" class="input-filter-select">
+              <option value="">-- Pilih Tahun Pelajaran --</option>
+              <option v-for="tp in listTahunPelajaran" :key="tp.id" :value="tp.id">
+                {{ tp.tahun_ajaran || tp.tahun_pelajaran || tp.nama_tahun || tp.nama }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="modal-label">2. Pilih Rekan Guru & Kelas:</label>
+            <select 
+              v-model="selectedPlottingTeman" 
+              class="input-filter-select" 
+              :disabled="!selectedTahunTeman || isLoadingTemanList"
+            >
+              <option value="">
+                {{ !selectedTahunTeman ? '-- Pilih Tahun Pelajaran Dulu --' : (isLoadingTemanList ? 'Sedang memuat data rekan...' : '-- Pilih Referensi Guru --') }}
+              </option>
+              <option v-for="teman in listTemanAtp" :key="teman.id" :value="teman.id">
+                {{ teman.guru?.name || teman.nama_guru || 'Guru Lain' }} - 
+                Kelas {{ formatArrayKelas(teman.list_kelas || teman.kelas || []) }}
+              </option>
+            </select>
+            <small v-if="selectedTahunTeman && listTemanAtp.length === 0 && !isLoadingTemanList" style="color: #c62828; margin-top: 5px; display: block;">
+              * Tidak ditemukan guru lain yang mengajar mapel ini pada tahun tersebut.
+            </small>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button @click="showCloneModal = false" class="btn-modal-batal">Batal</button>
+          <button 
+            @click="prosesCloneAtp" 
+            class="btn-modal-terapkan" 
+            :disabled="!selectedPlottingTeman || isLoadingTeman"
+          >
+            <i class="fa-solid fa-download"></i> {{ isLoadingTeman ? 'Menyalin...' : 'Terapkan Struktur' }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -155,10 +213,10 @@ const route = useRoute();
 const router = useRouter();
 
 const listPlottingRaw = ref([]);
-const selectedPlottingId = ref(''); // Murni memegang ploting_kelas_id tunggal
+const selectedPlottingId = ref(''); 
 
 const mapelId = ref('');
-const kelasId = ref(''); // Menyimpan ID Plotting Kelas (sinkron dengan selectedPlottingId)
+const kelasId = ref(''); 
 
 const targetJpTahunan = ref(0);
 const totalMingguEfektif = ref(0);
@@ -169,21 +227,24 @@ const isLoading = ref(false);
 const isSaving = ref(false);
 const formATP = ref({});
 
+// State Kebutuhan Clone Modal
+const showCloneModal = ref(false);
+const listTahunPelajaran = ref([]);
+const selectedTahunTeman = ref('');
+const listTemanAtp = ref([]);
+const selectedPlottingTeman = ref('');
+const isLoadingTemanList = ref(false);
+const isLoadingTeman = ref(false);
+
 const Toast = Swal.mixin({
-  toast: true,
-  position: 'top-end',
-  showConfirmButton: false,
-  timer: 3000,
-  timerProgressBar: true,
-  background: '#1E5631',
-  color: '#FFE0B2',
+  toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+  timerProgressBar: true, background: '#1E5631', color: '#FFE0B2',
 });
 
 const kembaliKeDashboard = () => {
   router.push({ name: 'guru.dashboard' });
 };
 
-// Helper untuk merangkai string teks kelas gabungan di dalam dropdown
 const formatArrayKelas = (arr) => {
   if (!arr || arr.length === 0) return 'Tidak ada kelas';
   if (typeof arr === 'string') return arr; 
@@ -194,41 +255,23 @@ const totalJpTerpakai = computed(() => {
   return Object.values(formATP.value).reduce((total, item) => total + (Number(item.alokasi_jp) || 0), 0);
 });
 
-// 🛠️ TAMBAHKAN COMPUTED PROPERTY BARU INI:
 const jpStatus = computed(() => {
   const selisih = targetJpTahunan.value - totalJpTerpakai.value;
   
   if (selisih > 0) {
-    return {
-      text: `Kurang ${selisih} JP`,
-      color: '#B78103',  // Teks Kuning Tua (agar kontras & mudah dibaca)
-      bg: '#FFF9C4',     // Background Kuning Muda
-      icon: 'fa-circle-exclamation'
-    };
+    return { text: `Kurang ${selisih} JP`, color: '#B78103', bg: '#FFF9C4', icon: 'fa-circle-exclamation' };
   } else if (selisih < 0) {
-    return {
-      text: `Kelebihan ${Math.abs(selisih)} JP`,
-      color: '#C62828',  // Teks Merah
-      bg: '#FFEBEE',     // Background Merah Muda
-      icon: 'fa-circle-xmark'
-    };
+    return { text: `Kelebihan ${Math.abs(selisih)} JP`, color: '#C62828', bg: '#FFEBEE', icon: 'fa-circle-xmark' };
   } else {
-    return {
-      text: 'JP Terpenuhi',
-      color: '#2E7D32',  // Teks Hijau
-      bg: '#E8F5E9',     // Background Hijau Muda
-      icon: 'fa-circle-check'
-    };
+    return { text: 'JP Terpenuhi', color: '#2E7D32', bg: '#E8F5E9', icon: 'fa-circle-check' };
   }
 });
 
-// Load Seluruh List Tugas Mengajar Guru untuk Dropdown
 const muatSemuaPlottingDropdown = async () => {
   try {
     const res = await api.get('/guru/plotting', { params: { per_page: 100 } });
     listPlottingRaw.value = res.data.data || res.data || [];
     
-    // Jika diarahkan langsung dari dashboard membawa query parameter kelas_id
     if (route.query.kelas_id) {
       selectedPlottingId.value = String(route.query.kelas_id);
       handlePlottingChange();
@@ -238,31 +281,21 @@ const muatSemuaPlottingDropdown = async () => {
   }
 };
 
-// Handle Perubahan Opsi Pilihan pada Dropdown
 const handlePlottingChange = () => {
   if (!selectedPlottingId.value) {
-    mapelId.value = '';
-    kelasId.value = '';
-    listCP.value = [];
-    targetJpTahunan.value = 0;
-    totalMingguEfektif.value = 0;
-    jpPerMinggu.value = 0;
+    mapelId.value = ''; kelasId.value = ''; listCP.value = [];
+    targetJpTahunan.value = 0; totalMingguEfektif.value = 0; jpPerMinggu.value = 0;
     return;
   }
   
-  // Cari 1 baris data utuh berdasarkan id yang dipilih
   const selectedPlot = listPlottingRaw.value.find(p => String(p.id) === String(selectedPlottingId.value));
 
   if (selectedPlot) {
-    // Ikat datanya langsung sesuai struktur tabel database Bos
-    kelasId.value = selectedPlot.id; // ploting_kelas_id
+    kelasId.value = selectedPlot.id; 
     mapelId.value = selectedPlot.mapel_id || selectedPlot.id_mapel;
     jpPerMinggu.value = selectedPlot.jp_per_minggu || 0;
 
-    // Sinkronkan ke URL parameter tanpa reload halaman (untuk bookmark/refresh aman)
     router.replace({ query: { mapel_id: mapelId.value, kelas_id: kelasId.value } });
-
-    // Jalankan kalkulasi RME dan load matriks
     fetchKonteksDanDataMatriks(selectedPlot.tahun_pelajaran_id);
   }
 };
@@ -287,11 +320,9 @@ const muatStrukturKurikulumDanATP = async () => {
   if (!mapelId.value || !kelasId.value) return;
   isLoading.value = true;
   try {
-    // 1. Ambil list Capaian & Tujuan Pembelajaran dari Mapel terkait
     const resCP = await api.get('/guru/capaian-pembelajaran', { params: { mapel_id: mapelId.value } });
     listCP.value = resCP.data.data || resCP.data || [];
 
-    // 2. Ambil data matriks ATP yang pernah disimpan sebelumnya berdasarkan kelasId (ploting_kelas_id)
     let dataSavedATP = [];
     try {
       const resATP = await api.get('/guru/atp', { params: { mapel_id: mapelId.value, kelas_id: kelasId.value } });
@@ -300,7 +331,6 @@ const muatStrukturKurikulumDanATP = async () => {
       console.log("Belum ada data ATP untuk kelas ini.");
     }
 
-    // 3. Mapping data ke object form reaktif Vue
     formATP.value = {};
     listCP.value.forEach(cp => {
       const listTp = cp.list_tp || cp.listTp || [];
@@ -339,7 +369,7 @@ const simpanSemuaATP = async () => {
 
     const payload = { 
       mapel_id: mapelId.value,   
-      kelas_id: kelasId.value, // Mengirimkan ploting_kelas_id tunggal ke backend Laravel Bos
+      kelas_id: kelasId.value, 
       items: payloadItems 
     };
     
@@ -349,6 +379,92 @@ const simpanSemuaATP = async () => {
     Toast.fire({ icon: 'error', title: 'Gagal menyimpan data.' });
   } finally {
     isSaving.value = false;
+  }
+};
+
+// 🛠️ UPDATE: Membuka modal menggunakan route '/guru/tahun-ajaran' yang sudah Anda miliki
+const bukaModalClone = async () => {
+  if (!selectedPlottingId.value) return;
+  
+  try {
+    const res = await api.get('/guru/tahun-ajaran'); // Menggunakan endpoint milik Anda
+    listTahunPelajaran.value = res.data.data || res.data || [];
+    
+    // Reset parameter modal
+    selectedTahunTeman.value = '';
+    selectedPlottingTeman.value = '';
+    listTemanAtp.value = [];
+    
+    showCloneModal.value = true;
+  } catch (error) {
+    console.error(error);
+    Toast.fire({ icon: 'error', title: 'Gagal memuat daftar Tahun Pelajaran.' });
+  }
+};
+
+const handleTahunTemanChange = async () => {
+  selectedPlottingTeman.value = '';
+  listTemanAtp.value = [];
+  if (!selectedTahunTeman.value) return;
+
+  isLoadingTemanList.value = true;
+  try {
+    const res = await api.get('/guru/atp/referensi-teman', {
+      params: { 
+        plotting_id: selectedPlottingId.value,
+        tahun_pelajaran_id: selectedTahunTeman.value 
+      }
+    });
+    listTemanAtp.value = res.data.data || res.data || [];
+  } catch (error) {
+    console.error(error);
+    Toast.fire({ icon: 'error', title: 'Gagal memuat daftar rekan guru.' });
+  } finally {
+    isLoadingTemanList.value = false;
+  }
+};
+
+const prosesCloneAtp = async () => {
+  isLoadingTeman.value = true;
+  try {
+    const res = await api.get('/guru/atp/ambil-teman', {
+      params: { plotting_id_teman: selectedPlottingTeman.value }
+    });
+    
+    const atpTeman = res.data.data || [];
+    
+    if (atpTeman.length === 0) {
+      Swal.fire({ 
+        icon: 'warning', 
+        title: 'Data Kosong', 
+        text: 'Rekan guru yang dipilih belum mengisi atau menyimpan susunan matriks ATP mereka.',
+        confirmButtonColor: '#1E5631'
+      });
+      isLoadingTeman.value = false;
+      return;
+    }
+
+    let terisi = 0;
+    atpTeman.forEach(atp => {
+      if (formATP.value[atp.tujuan_pembelajaran_id]) {
+        formATP.value[atp.tujuan_pembelajaran_id].semester = atp.semester || '';
+        formATP.value[atp.tujuan_pembelajaran_id].nomor_urut = atp.nomor_urut || '';
+        formATP.value[atp.tujuan_pembelajaran_id].alokasi_jp = atp.alokasi_jp || '';
+        terisi++;
+      }
+    });
+
+    showCloneModal.value = false;
+    Toast.fire({ 
+      icon: 'success', 
+      title: `${terisi} Pengaturan berhasil disalin! Silakan klik simpan.` 
+    });
+
+  } catch (error) {
+    console.error(error);
+    Toast.fire({ icon: 'error', title: 'Gagal menyalin data ATP rekan.' });
+  } finally {
+    isLoadingTeman.value = false;
   }
 };
 
@@ -370,7 +486,7 @@ onMounted(() => {
 /* Filter Card */
 .filter-card { border-top: 4px solid #FBC02D; background-color: #FFFDE7; }
 .filter-label { display: block; font-weight: bold; color: #1E5631; margin-bottom: 10px; font-size: 14.5px; }
-.input-filter-select { width: 100%; height: 45px; padding: 0 15px; font-size: 15px; border: 2px solid #689F38; border-radius: 6px; outline: none; background: white; font-weight: 500; cursor: pointer; color: #333; }
+.input-filter-select { width: 100%; height: 45px; padding: 0 15px; font-size: 15px; border: 2px solid #689F38; border-radius: 6px; outline: none; background: white; font-weight: 500; cursor: pointer; color: #333; margin-bottom: 5px; }
 
 .section-header-atp { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; margin-bottom: 25px; }
 .btn-save-all, .btn-save-all-bottom { background-color: #1E5631; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; }
@@ -392,4 +508,27 @@ onMounted(() => {
 .input-atp-select, .input-atp-num { width: 100%; height: 36px; padding: 0 8px; border: 1px solid #ccc; border-radius: 4px; outline: none; }
 .input-atp-num { text-align: center; }
 .footer-action-row { display: flex; justify-content: flex-end; margin-top: 20px; padding-top: 15px; border-top: 2px solid #eee; }
+
+/* CSS UNTUK FITUR TOMBOL CLONE & MODAL POP-UP */
+.btn-clone-atp { background-color: #0288D1; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.2s; }
+.btn-clone-atp:hover:not(:disabled) { background-color: #01579B; }
+.btn-clone-atp:disabled { background-color: #B0BEC5; cursor: not-allowed; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 9999; }
+.modal-card { background: white; border-radius: 8px; width: 500px; max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; animation: fadeIn 0.3s ease; }
+.modal-header { background: #1E5631; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h4 { margin: 0; font-size: 16px; color: #FBC02D; display: flex; align-items: center; gap: 8px; }
+.close-modal-btn { background: none; border: none; color: white; font-size: 24px; cursor: pointer; line-height: 1; }
+.modal-body { padding: 25px; }
+.modal-footer { padding: 15px 20px; background: #f5f5f5; display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #e0e0e0; }
+
+.modal-label { font-weight: bold; font-size: 13.5px; color: #1E5631; display: block; margin-bottom: 8px; }
+.btn-modal-batal { background: #fff; color: #555; border: 1px solid #ccc; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.btn-modal-terapkan { background: #0288D1; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+.btn-modal-terapkan:disabled { background: #b0bec5; cursor: not-allowed; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
 </style>
