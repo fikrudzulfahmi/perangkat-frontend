@@ -198,11 +198,12 @@
           :settingCetak="settingCetak"
         />
         
-        <JurnalAgenda 
-          v-if="showPart.jurnal_agenda" 
-          :identity="dataGuruDynamic" 
-          :settingCetak="settingCetak" 
-        />
+<section v-if="showPart.jurnal_agenda" class="page-a4 break-before">
+  <JurnalAgenda 
+    :identity="dataGuruDynamic" 
+    :settingCetak="settingCetak" 
+  />
+</section>
 
         <section v-if="showPart.sekat3" class="page-a4 break-before">
           <div class="sekat-divider">
