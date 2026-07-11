@@ -191,16 +191,23 @@
           <RichTextEditor v-model="form.glosarium_pustaka" :rows="4" placeholder="Contoh: Adaptasi: Penyesuaian diri..." />
         </div>
 
-        <div style="margin-top: 25px; padding: 15px; background: #e3f2fd; border: 1px dashed #1565c0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="margin-top: 25px; padding: 15px; background: #e3f2fd; border: 1px dashed #1565c0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap;">
           <div>
             <strong style="color: #1565c0;"><i class="fa-solid fa-robot"></i> Asisten AI Modul Ajar</strong>
             <p style="margin: 4px 0 0 0; font-size: 13px; color: #555;">
               Bingung mengisi komponen modul? Biarkan AI membantu Anda merancangnya berdasarkan TP yang dipilih.
             </p>
           </div>
-          <button @click.prevent="salinPromptAI" style="background: #1565c0; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <i class="fa-solid fa-copy"></i> Buat & Salin Prompt AI
-          </button>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" @click.prevent="salinPromptAI" style="background: white; color: #1565c0; border: 1px solid #1565c0; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap;">
+              <i class="fa-solid fa-copy"></i> Salin Prompt Manual
+            </button>
+            <button type="button" @click.prevent="generateDenganAI" :disabled="isGeneratingAI" class="btn-ai-generate">
+              <i class="fa-solid fa-spinner fa-spin" v-if="isGeneratingAI"></i>
+              <i class="fa-solid fa-wand-magic-sparkles" v-else></i>
+              {{ isGeneratingAI ? 'Sedang membuat...' : 'Generate Otomatis dengan AI' }}
+            </button>
+          </div>
         </div>
 
         <div class="section-header margin-top-25">
@@ -374,6 +381,7 @@ const router = useRouter();
 const route = useRoute();
 
 const isSaving = ref(false);
+const isGeneratingAI = ref(false);
 const plottingId = ref(route.query.plotting_id || '');
 const mapelId = ref(route.query.mapel_id || '');
 
@@ -622,6 +630,72 @@ const muatDataPendukung = async () => {
   }
 };
 
+// Kumpulkan teks Tujuan Pembelajaran yang sedang dicentang (dipakai bareng oleh
+// generateDenganAI maupun salinPromptAI, supaya isinya selalu sinkron)
+const kumpulkanTeksTpTerpilih = () => {
+  let teksTpTerpilih = [];
+  listCp.value.forEach(cp => {
+    if (cp.list_tp) {
+      cp.list_tp.forEach(tp => {
+        if (form.value.tujuan_pembelajaran_ids.includes(tp.id)) {
+          teksTpTerpilih.push(`[${tp.kode_tp}] ${tp.deskripsi}`);
+        }
+      });
+    }
+  });
+  return teksTpTerpilih;
+};
+
+const generateDenganAI = async () => {
+  if (!form.value.bab_atau_materi) {
+    Swal.fire({ icon: 'warning', title: 'Isi Bab / Materi!', text: 'Silakan isi Bab/Pokok Materi terlebih dahulu.' });
+    return;
+  }
+  if (form.value.tujuan_pembelajaran_ids.length === 0) {
+    Swal.fire({ icon: 'warning', title: 'Pilih TP Dulu!', text: 'Silakan centang minimal 1 Tujuan Pembelajaran (TP).' });
+    return;
+  }
+
+  isGeneratingAI.value = true;
+  try {
+    const { data } = await api.post('/guru/ai/generate-modul', {
+      bab_atau_materi: form.value.bab_atau_materi,
+      pertemuan_ke: form.value.pertemuan_ke,
+      alokasi_waktu: form.value.alokasi_waktu,
+      tujuan_pembelajaran: kumpulkanTeksTpTerpilih(),
+    });
+
+    // Isi otomatis ke field-field form. Karena field ini sekarang pakai
+    // RichTextEditor, teks dengan baris baru (\n) otomatis dikonversi jadi
+    // baris rapi saat ditampilkan, tanpa perlu diubah manual di sini.
+    form.value.pertanyaan_pemantik = data.pertanyaan_pemantik || '';
+    form.value.pemahaman_bermakna = data.pemahaman_bermakna || '';
+    form.value.sarana_prasarana = data.sarana_prasarana || '';
+    form.value.lkpd = data.lkpd || '';
+    form.value.glosarium_pustaka = data.glosarium_pustaka || '';
+
+    if (form.value.kegiatan_pembelajaran[0]) form.value.kegiatan_pembelajaran[0].aktivitas = data.kegiatan_pendahuluan || '';
+    if (form.value.kegiatan_pembelajaran[1]) form.value.kegiatan_pembelajaran[1].aktivitas = data.kegiatan_inti || '';
+    if (form.value.kegiatan_pembelajaran[2]) form.value.kegiatan_pembelajaran[2].aktivitas = data.kegiatan_penutup || '';
+
+    const rekomendasi = data.rekomendasi_asesmen || [];
+    form.value.asesmen_diagnostik = rekomendasi.includes('Diagnostik');
+    form.value.asesmen_formatif = rekomendasi.includes('Formatif');
+    form.value.asesmen_sumatif = rekomendasi.includes('Sumatif');
+
+    form.value.remedial_content = data.remedial_content || '';
+    form.value.enrichment_content = data.enrichment_content || '';
+
+    Toast.fire({ icon: 'success', title: 'Form berhasil diisi otomatis oleh AI! Silakan periksa & sesuaikan lagi.' });
+  } catch (error) {
+    console.error(error);
+    const pesan = error.response?.data?.message || 'Gagal menghasilkan isi modul dari AI. Coba lagi.';
+    Swal.fire({ icon: 'error', title: 'Gagal', text: pesan });
+  } finally {
+    isGeneratingAI.value = false;
+  }
+};
+
 const salinPromptAI = async () => {
   if (!form.value.bab_atau_materi) {
     Swal.fire({ icon: 'warning', title: 'Isi Bab / Materi!', text: 'Silakan isi Bab/Pokok Materi terlebih dahulu.' });
@@ -635,18 +709,7 @@ const salinPromptAI = async () => {
   const waktu = form.value.alokasi_waktu ? `${form.value.alokasi_waktu} Menit` : 'Sesuai jam pelajaran';
   const pertemuan = form.value.pertemuan_ke ? form.value.pertemuan_ke : '-';
 
-  let teksTpTerpilih = [];
-  listCp.value.forEach(cp => {
-    if (cp.list_tp) {
-      cp.list_tp.forEach(tp => {
-        if (form.value.tujuan_pembelajaran_ids.includes(tp.id)) {
-          teksTpTerpilih.push(`[${tp.kode_tp}] ${tp.deskripsi}`);
-        }
-      });
-    }
-  });
-
-  const stringTp = teksTpTerpilih.map((teks, index) => `${index + 1}. ${teks}`).join('\n');
+  const stringTp = kumpulkanTeksTpTerpilih().map((teks, index) => `${index + 1}. ${teks}`).join('\n');
 
   const promptText = `Saya sedang membuat Modul Ajar SMK untuk materi: "${form.value.bab_atau_materi}" (Pertemuan: ${pertemuan}, Waktu: ${waktu}).
 
@@ -739,6 +802,31 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.btn-ai-generate {
+  background: linear-gradient(135deg, #1E5631, #689F38);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: filter 0.15s ease, transform 0.1s ease;
+}
+.btn-ai-generate:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+.btn-ai-generate:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.btn-ai-generate:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
 .content-body { padding: 30px; background-color: #fcf8f2; min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 .card-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 .margin-top-25 { margin-top: 25px; }
