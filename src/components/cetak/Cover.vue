@@ -27,8 +27,8 @@
           <div class="meta-label">MATA PELAJARAN</div>
           <div class="meta-value">: {{ guru?.mapel || '-' }}</div>
 
-          <div class="meta-label">KELAS / SEMESTER</div>
-          <div class="meta-value">: {{ guru?.kelas || '-' }} / GASAL</div>
+          <div class="meta-label">KELAS</div>
+          <div class="meta-value">: {{ guru?.kelas || '-' }}</div>
 
           <div class="meta-label">TAHUN PELAJARAN</div>
           <div class="meta-value">: {{ guru?.tahun_pelajaran || '-' }}</div>
@@ -132,16 +132,11 @@ defineProps(['config', 'guru']);
   width: 100%;
   display: flex;
   justify-content: center;
-  margin: 40px 0;
+  padding-top: 100px;
+  padding-bottom: 100px;
 }
 
-.logo-inner-frame {
-  padding: 15px;
-  border: 1px solid #e9ecef;
-  border-radius: 50%;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.03);
-  background: #fff;
-}
+
 
 .school-logo {
   width: 150px;

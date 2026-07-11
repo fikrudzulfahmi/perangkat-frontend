@@ -20,14 +20,17 @@
             <tr><td class="cell-label bold-text">Bab / Materi</td><td class="cell-separator">:</td><td class="bold-text">{{ modul.bab_atau_materi }}</td></tr>
             <tr><td class="cell-label bold-text">Fase / Kelas</td><td class="cell-separator">:</td><td>{{ guru?.fase || 'F' }} / {{ guru?.kelas || '-' }}</td></tr>
             <tr><td class="cell-label bold-text">Alokasi Waktu</td><td class="cell-separator">:</td><td>{{ modul.alokasi_waktu }}</td></tr>
-            <tr><td class="cell-label bold-text">Pertemuan Ke</td><td class="cell-separator">:</td><td>{{ modul.pertemuan_ke }}</td></tr>
+            <tr><td class="cell-label bold-text">Jumlah Peretemuan</td><td class="cell-separator">:</td><td>{{ modul.pertemuan_ke }} x pertemuan</td></tr>
           </tbody>
         </table>
 
         <div class="sub-section">
-          <h4 class="sub-title">1. Profil Pelajar Pancasila</h4>
-          <ul>
-            <li v-for="(pp, i) in modul.profil_pancasila" :key="i">{{ pp }}</li>
+          <h4 class="sub-title">1. Profil Lulusan</h4>
+          <ul class="profil-lulusan-list">
+            <li v-for="(pp, i) in modul.profil_pancasila" :key="i">
+              <span class="bold-text">{{ pp }}</span>
+              <div class="profil-desc">{{ getDeskripsiProfilLulusan(pp) }}</div>
+            </li>
           </ul>
         </div>
 
@@ -151,6 +154,57 @@
 import { sanitizeHtml } from '../../utils/sanitizeHtml';
 
 defineProps(['config', 'guru', 'modulList']);
+
+// Referensi: Permendikdasmen No. 10 Tahun 2025 tentang Standar Kompetensi Lulusan (SKL)
+// 8 Dimensi Profil Lulusan (pengganti 6 dimensi Profil Pelajar Pancasila)
+// Key harus persis sama dengan label yang tersimpan di field modul.profil_pancasila
+const DESKRIPSI_PROFIL_LULUSAN = {
+  'Keimanan, Ketakwaan, dan Akhlak Mulia':
+    'Peserta didik meyakini dan mengamalkan ajaran agama atau kepercayaannya, berakhlak mulia, serta menjaga hubungan baik dengan Tuhan Yang Maha Esa, sesama manusia, dan lingkungan sekitar.',
+  'Kewargaan':
+    'Peserta didik bangga terhadap identitas dan budayanya, menghargai keberagaman, menjaga persatuan bangsa, taat pada aturan bernegara dan bermasyarakat, serta peduli pada keberlanjutan lingkungan dan keharmonisan antarbangsa.',
+  'Penalaran Kritis':
+    'Peserta didik memiliki rasa ingin tahu, mampu berpikir logis dan analitis, dapat menganalisis dan memecahkan masalah, berargumentasi secara logis, serta memanfaatkan kemampuan literasi dan numerasi dalam menyelesaikan persoalan.',
+  'Kreativitas':
+    'Peserta didik mampu berperilaku produktif, menghasilkan gagasan atau karya yang inovatif, dan merumuskan solusi atas berbagai permasalahan di sekitarnya.',
+  'Kolaborasi':
+    'Peserta didik terbiasa peduli dan berbagi dengan orang lain, serta mampu membangun kerja sama dengan berbagai pihak di lingkungan sekitarnya.',
+  'Kemandirian':
+    'Peserta didik mampu bertanggung jawab, berinisiatif, dan beradaptasi dalam proses belajar maupun pengembangan dirinya.',
+  'Kesehatan':
+    'Peserta didik menerapkan pola hidup bersih dan sehat, memahami pentingnya kebugaran serta kesehatan fisik dan mental, dan berkontribusi positif bagi lingkungannya.',
+  'Komunikasi':
+    'Peserta didik memiliki kemampuan menyimak, membaca, berbicara, dan menulis dengan baik dan benar, sesuai etika, dalam berbagai konteks dan media.',
+};
+
+// Fallback berbasis kata kunci, dipakai hanya jika label tidak cocok persis
+// (misal ada perbedaan spasi/kapitalisasi pada data lama)
+const FALLBACK_KEYWORDS = [
+  { keywords: ['iman', 'takwa', 'akhlak'], key: 'Keimanan, Ketakwaan, dan Akhlak Mulia' },
+  { keywords: ['warga'], key: 'Kewargaan' },
+  { keywords: ['nalar', 'kritis'], key: 'Penalaran Kritis' },
+  { keywords: ['kreatif'], key: 'Kreativitas' },
+  { keywords: ['kolaborasi', 'gotong'], key: 'Kolaborasi' },
+  { keywords: ['mandiri'], key: 'Kemandirian' },
+  { keywords: ['sehat'], key: 'Kesehatan' },
+  { keywords: ['komunikasi'], key: 'Komunikasi' },
+];
+
+function getDeskripsiProfilLulusan(nama) {
+  if (!nama) return '';
+  const label = nama.toString().trim();
+
+  // 1. Coba cocokkan persis (case-insensitive)
+  const exactKey = Object.keys(DESKRIPSI_PROFIL_LULUSAN).find(
+    k => k.toLowerCase() === label.toLowerCase()
+  );
+  if (exactKey) return DESKRIPSI_PROFIL_LULUSAN[exactKey];
+
+  // 2. Fallback: cocokkan berdasarkan kata kunci
+  const teks = label.toLowerCase();
+  const found = FALLBACK_KEYWORDS.find(f => f.keywords.some(k => teks.includes(k)));
+  return found ? DESKRIPSI_PROFIL_LULUSAN[found.key] : '';
+}
 </script>
 
 <style scoped>
@@ -231,6 +285,18 @@ defineProps(['config', 'guru', 'modulList']);
 .pre-text :deep(th) { background: #f5f5f5; font-weight: bold; }
 ul { margin: 5px 0; padding-left: 20px; }
 li { font-size: 14px; text-align: justify; margin-bottom: 6px; line-height: 1.5; }
+
+/* PROFIL LULUSAN (8 DIMENSI) */
+.profil-lulusan-list { padding-left: 20px; }
+.profil-lulusan-list li { margin-bottom: 10px; }
+.profil-desc {
+  font-size: 13.5px;
+  font-weight: normal;
+  text-align: justify;
+  line-height: 1.5;
+  color: #222;
+  margin-top: 2px;
+}
 
 
 /* STYLE ASESMEN & REMEDIAL BARU (PENGGANTI BANK SOAL) */

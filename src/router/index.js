@@ -6,7 +6,8 @@ const routes = [
     {
         path: '/',
         name: 'login',
-        component: LoginView
+        component: LoginView,
+        meta: { title: 'Login' }
     },
     {
         // Cangkang Utama Admin
@@ -16,57 +17,68 @@ const routes = [
             {
                 path: '/dashboard',
                 name: 'Dashboard',
-                component: () => import('../views/DashboardView.vue')
+                component: () => import('../views/DashboardView.vue'),
+                meta: { title: 'Dashboard' }
             },
             {
                 path: '/data-guru',
                 name: 'Data Guru',
-                component: () => import('../views/DataGuruView.vue')
+                component: () => import('../views/DataGuruView.vue'),
+                meta: { title: 'Data Guru' }
             },
             {
                 path: '/mata-pelajaran',
                 name: 'MataPelajaran',
-                component: () => import('../views/MataPelajaranView.vue')
+                component: () => import('../views/MataPelajaranView.vue'),
+                meta: { title: 'Mata Pelajaran' }
             },
             {
                 path: '/kelas',
                 name: 'Kelas',
-                component: () => import('../views/KelasView.vue')
+                component: () => import('../views/KelasView.vue'),
+                meta: { title: 'Kelas' }
             },
             {
                 path: '/tahun-pelajaran',
                 name: 'TahunPelajaran',
-                component: () => import('../views/TahunPelajaranView.vue')
+                component: () => import('../views/TahunPelajaranView.vue'),
+                meta: { title: 'Tahun Pelajaran' }
             },
             {
                 path: '/plotting',
                 name: 'Plotting',
-                component: () => import('../views/PlottingView.vue')
+                component: () => import('../views/PlottingView.vue'),
+                meta: { title: 'Plotting' }
             },
             {
                 path: '/siswa',
                 name: 'siswa.index',
-                component: () => import('../views/SiswaView.vue')
+                component: () => import('../views/SiswaView.vue'),
+                meta: { title: 'Data Siswa' }
             },
             {
                 path: '/kalender-efektif',
                 name: 'kalender.index',
-                component: () => import('../views/KalenderEfektifView.vue')
+                component: () => import('../views/KalenderEfektifView.vue'),
+                meta: { title: 'Kalender Efektif' }
             },
             {
                 path: '/kurikulum',
                 name: 'kurikulum.index',
-                component: () => import('../views/KurikulumView.vue')
+                component: () => import('../views/KurikulumView.vue'),
+                meta: { title: 'Kurikulum' }
             },
             {
                 path: '/dokumen-statis',
                 name: 'DokumenStatis',
-                component: () => import('../views/DokumenStatisView.vue')
+                component: () => import('../views/DokumenStatisView.vue'),
+                meta: { title: 'Dokumen Statis' }
             },
             {
                 path: '/jadwal-mengajar',
                 name: 'JadwalMengajar',
-                component: () => import('../views/JadwalMengajarView.vue')
+                component: () => import('../views/JadwalMengajarView.vue'),
+                meta: { title: 'Jadwal Mengajar' }
             },
         ]
     },
@@ -77,66 +89,78 @@ const routes = [
             {
                 path: 'dashboard',
                 name: 'guru.dashboard',
-                component: () => import('../views/guru/DashboardGuruView.vue')
+                component: () => import('../views/guru/DashboardGuruView.vue'),
+                meta: { title: 'Dashboard Guru' }
             },
             {
                 path: 'atp',
                 name: 'guru.atp',
-                component: () => import('../views/guru/AtpView.vue')
+                component: () => import('../views/guru/AtpView.vue'),
+                meta: { title: 'ATP' }
             },
             {
                 path: 'kktp',
                 name: 'guru.kktp',
-                component: () => import('../views/guru/KktpView.vue')
+                component: () => import('../views/guru/KktpView.vue'),
+                meta: { title: 'KKTP' }
             },
             {
                 path: 'modul-ajar',
                 name: 'guru.modul-ajar',
-                component: () => import('../views/guru/ModulAjarView.vue')
+                component: () => import('../views/guru/ModulAjarView.vue'),
+                meta: { title: 'Modul Ajar' }
             },
             {
                 path: 'modul-ajar/create',
                 name: 'guru.modul-ajar.create',
-                component: () => import('../views/guru/ModulAjarCreateView.vue')
+                component: () => import('../views/guru/ModulAjarCreateView.vue'),
+                meta: { title: 'Tambah Modul Ajar' }
             },
             {
                 path: '/guru/modul-ajar/:id/edit', // :id untuk menangkap ID modul
                 name: 'guru.modul-ajar.edit',
-                component: () => import('../views/guru/ModulAjarEditView.vue') // Pastikan folder/path-nya sesuai
+                component: () => import('../views/guru/ModulAjarEditView.vue'), // Pastikan folder/path-nya sesuai
+                meta: { title: 'Edit Modul Ajar' }
             },
             // 🟢 (Opsional sekalian) Tambahkan rute untuk halaman Edit nantinya
 
             {
                 path: 'buku-pegangan', // tidak pakai /guru/ di depan jika diletakkan di children
                 name: 'guru.buku-pegangan',
-                component: () => import('../views/guru/BukuPeganganView.vue')
+                component: () => import('../views/guru/BukuPeganganView.vue'),
+                meta: { title: 'Buku Pegangan' }
             },
             {
                 path: '/guru/prosem',
                 name: 'guru.prosem',
-                component: () => import('../views/guru/ProsemView.vue')
+                component: () => import('../views/guru/ProsemView.vue'),
+                meta: { title: 'Prosem' }
             },
             {
                 path: 'bank-soal',
                 name: 'guru.bank-soal',
-                component: () => import('../views/guru/BankSoalView.vue')
+                component: () => import('../views/guru/BankSoalView.vue'),
+                meta: { title: 'Bank Soal' }
             },
             // Bank Soal - Form Create
             {
                 path: 'bank-soal/tambah',
                 name: 'guru.bank-soal.create',
-                component: () => import('../views/guru/BankSoalFormView.vue')
+                component: () => import('../views/guru/BankSoalFormView.vue'),
+                meta: { title: 'Tambah Bank Soal' }
             },
             // Bank Soal - Form Edit
             {
                 path: 'bank-soal/edit/:id',
                 name: 'guru.bank-soal.edit',
-                component: () => import('../views/guru/BankSoalFormView.vue')
+                component: () => import('../views/guru/BankSoalFormView.vue'),
+                meta: { title: 'Edit Bank Soal' }
             },
             {
                 path: '/guru/cetak-perangkat',
                 name: 'guru.cetak-perangkat',
-                component: () => import('../views/guru/CetakPerangkat.vue') // 🟢 Jalur file utama cetak perangkat guru
+                component: () => import('../views/guru/CetakPerangkat.vue'), // 🟢 Jalur file utama cetak perangkat guru
+                meta: { title: 'Cetak Perangkat' }
             },
 
         ]
@@ -185,6 +209,15 @@ router.beforeEach((to, from, next) => {
             next();
         }
     }
+});
+
+// 3. Set judul tab browser secara dinamis sesuai meta.title tiap route
+const APP_NAME = 'Perangkat Mengajar';
+
+router.afterEach((to) => {
+    document.title = to.meta?.title
+        ? `${to.meta.title} | ${APP_NAME}`
+        : APP_NAME;
 });
 
 export default router;
