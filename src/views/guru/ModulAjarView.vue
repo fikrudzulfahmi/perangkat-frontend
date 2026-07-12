@@ -80,7 +80,7 @@
                 <strong style="color: #143d22; font-size: 15px;">{{ modul.bab_atau_materi }}</strong><br>
                 <small style="color: #666;">Target: {{ modul.target_peserta }}</small>
               </td>
-              <td style="vertical-align: middle;">Pertemuan {{ modul.pertemuan_ke }}</td>
+              <td style="vertical-align: middle;">{{ modul.pertemuan_ke }} x Pertemuan</td>
               <td style="vertical-align: middle;">{{ modul.alokasi_waktu }}</td>
               <td style="vertical-align: middle;">
                 <span class="badge-model">{{ modul.model_pembelajaran }}</span>

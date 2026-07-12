@@ -29,13 +29,13 @@
           </div>
           
           <div class="form-group">
-            <label>Pertemuan Ke- <span class="text-danger">*</span></label>
-            <input v-model="form.pertemuan_ke" type="text" class="input-text" required placeholder="Contoh: 1 dari 3" />
+            <label>Pertemuan <span class="text-danger">*</span></label>
+            <input v-model="form.pertemuan_ke" type="text" class="input-text" required placeholder="Contoh: 1-3 (terisi otomatis setelah Generate AI)" />
           </div>
 
           <div class="form-group">
             <label>Alokasi Waktu <span class="text-danger">*</span></label>
-            <input v-model="form.alokasi_waktu" type="text" class="input-text" required placeholder="Contoh: 2 x 45 Menit" />
+            <input v-model="form.alokasi_waktu" type="text" class="input-text" required placeholder="Contoh: 4 JP (180 Menit) (terisi otomatis setelah Generate AI)" />
           </div>
 
           <div class="form-group">
@@ -199,8 +199,10 @@
             </p>
           </div>
           <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button type="button" @click.prevent="salinPromptAI" style="background: white; color: #1565c0; border: 1px solid #1565c0; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap;">
-              <i class="fa-solid fa-copy"></i> Salin Prompt Manual
+            <button type="button" @click.prevent="salinPromptAI" :disabled="isCopyingPrompt" style="background: white; color: #1565c0; border: 1px solid #1565c0; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; white-space: nowrap;">
+              <i class="fa-solid fa-spinner fa-spin" v-if="isCopyingPrompt"></i>
+              <i class="fa-solid fa-copy" v-else></i>
+              {{ isCopyingPrompt ? 'Menyiapkan...' : 'Salin Prompt Manual' }}
             </button>
             <button type="button" @click.prevent="generateDenganAI" :disabled="isGeneratingAI" class="btn-ai-generate">
               <i class="fa-solid fa-spinner fa-spin" v-if="isGeneratingAI"></i>
@@ -630,22 +632,6 @@ const muatDataPendukung = async () => {
   }
 };
 
-// Kumpulkan teks Tujuan Pembelajaran yang sedang dicentang (dipakai bareng oleh
-// generateDenganAI maupun salinPromptAI, supaya isinya selalu sinkron)
-const kumpulkanTeksTpTerpilih = () => {
-  let teksTpTerpilih = [];
-  listCp.value.forEach(cp => {
-    if (cp.list_tp) {
-      cp.list_tp.forEach(tp => {
-        if (form.value.tujuan_pembelajaran_ids.includes(tp.id)) {
-          teksTpTerpilih.push(`[${tp.kode_tp}] ${tp.deskripsi}`);
-        }
-      });
-    }
-  });
-  return teksTpTerpilih;
-};
-
 const generateDenganAI = async () => {
   if (!form.value.bab_atau_materi) {
     Swal.fire({ icon: 'warning', title: 'Isi Bab / Materi!', text: 'Silakan isi Bab/Pokok Materi terlebih dahulu.' });
@@ -660,9 +646,8 @@ const generateDenganAI = async () => {
   try {
     const { data } = await api.post('/guru/ai/generate-modul', {
       bab_atau_materi: form.value.bab_atau_materi,
-      pertemuan_ke: form.value.pertemuan_ke,
-      alokasi_waktu: form.value.alokasi_waktu,
-      tujuan_pembelajaran: kumpulkanTeksTpTerpilih(),
+      plotting_id: plottingId.value,
+      tujuan_pembelajaran_id: form.value.tujuan_pembelajaran_ids,
     });
 
     // Isi otomatis ke field-field form. Karena field ini sekarang pakai
@@ -677,6 +662,19 @@ const generateDenganAI = async () => {
     if (form.value.kegiatan_pembelajaran[0]) form.value.kegiatan_pembelajaran[0].aktivitas = data.kegiatan_pendahuluan || '';
     if (form.value.kegiatan_pembelajaran[1]) form.value.kegiatan_pembelajaran[1].aktivitas = data.kegiatan_inti || '';
     if (form.value.kegiatan_pembelajaran[2]) form.value.kegiatan_pembelajaran[2].aktivitas = data.kegiatan_penutup || '';
+
+    // Backend sekarang menghitung sendiri jumlah pertemuan & alokasi waktu
+    // dari data Prosem + Plotting (bukan input manual lagi). Isi field
+    // deskriptif ini otomatis dari hasil hitungan tersebut (info di data._meta),
+    // tetap bisa diedit manual oleh guru kalau perlu disesuaikan.
+    if (data._meta) {
+      form.value.pertemuan_ke = `1-${data._meta.pertemuan}`;
+      form.value.alokasi_waktu = `${data._meta.jp_per_pertemuan} JP (${data._meta.waktu_pendahuluan_menit + data._meta.waktu_inti_menit + data._meta.waktu_penutup_menit} Menit)`;
+
+      if (form.value.kegiatan_pembelajaran[0]) form.value.kegiatan_pembelajaran[0].durasi = `${data._meta.waktu_pendahuluan_menit} Menit`;
+      if (form.value.kegiatan_pembelajaran[1]) form.value.kegiatan_pembelajaran[1].durasi = `${data._meta.waktu_inti_menit} Menit / sesi`;
+      if (form.value.kegiatan_pembelajaran[2]) form.value.kegiatan_pembelajaran[2].durasi = `${data._meta.waktu_penutup_menit} Menit`;
+    }
 
     const rekomendasi = data.rekomendasi_asesmen || [];
     form.value.asesmen_diagnostik = rekomendasi.includes('Diagnostik');
@@ -696,6 +694,8 @@ const generateDenganAI = async () => {
   }
 };
 
+const isCopyingPrompt = ref(false);
+
 const salinPromptAI = async () => {
   if (!form.value.bab_atau_materi) {
     Swal.fire({ icon: 'warning', title: 'Isi Bab / Materi!', text: 'Silakan isi Bab/Pokok Materi terlebih dahulu.' });
@@ -706,60 +706,31 @@ const salinPromptAI = async () => {
     return;
   }
 
-  const waktu = form.value.alokasi_waktu ? `${form.value.alokasi_waktu} Menit` : 'Sesuai jam pelajaran';
-  const pertemuan = form.value.pertemuan_ke ? form.value.pertemuan_ke : '-';
-
-  const stringTp = kumpulkanTeksTpTerpilih().map((teks, index) => `${index + 1}. ${teks}`).join('\n');
-
-  const promptText = `Saya sedang membuat Modul Ajar SMK untuk materi: "${form.value.bab_atau_materi}" (Pertemuan: ${pertemuan}, Waktu: ${waktu}).
-
-Tujuan Pembelajarannya adalah:
-${stringTp}
-
-Tolong buatkan isian untuk form Modul Ajar saya. 
-
-Syarat utama: 
-Buatlah modul berikut dengan bahasa yang sederhana, langsung pada intinya (to the point), dan tidak kompleks. Tanpa kalimat pengantar atau penutup dari Anda. 
-
-Langsung jawab persis dengan 7 format berikut:
-
-1. Pertanyaan Pemantik: 
-(1-2 pertanyaan singkat pemancing nalar)
-
-2. Pemahaman Bermakna: 
-(1-2 kalimat singkat manfaat materi di dunia nyata)
-
-3. Sarana & Prasarana: 
-(Daftar singkat alat/bahan/media)
-
-4. LKPD: 
-(Ide singkat tugas praktek/teori untuk siswa)
-
-5. Glosarium dan Daftar Pustaka: 
-(3-4 kata kunci dan 1-2 buku/referensi umum)
-
-6. Skenario Kegiatan Pembelajaran: 
-a. Tuliskan poin-poin yang sangat detail pada Skenario Kegiatan Pembelajaran untuk Kegiatan: Pendahuluan, Inti, Penutup, serta munculkan pembagian alokasi waktunya.
-b. Tuliskan poin-poin pada kegiatan inti lebih detailkan dalam bentuk poin-poin kegiatan pada setiap pertemuan, serta munculkan pembagian alokasi waktunya.
-
-7. Panduan Asesmen, Remedial, dan Pengayaan (Sesuai Lampiran Form):
-a. Rekomendasi Centang Jenis Asesmen: (Sebutkan jenis asesmen yang harus dicentang antara Diagnostik, Formatif, atau Sumatif berdasarkan skenario pembelajaran di atas).
-b. Langkah Remedial (Editable): (Tuliskan poin-poin singkat langkah remedial konkret yang bisa langsung disalin ke kolom form).
-c. Evaluasi Pengayaan (Editable): (Tuliskan poin-poin singkat bentuk evaluasi pengayaan konkret yang bisa langsung disalin ke kolom form).`;
-
+  isCopyingPrompt.value = true;
   try {
-    await navigator.clipboard.writeText(promptText);
-    
+    // Ambil prompt PERSIS dari backend (bukan dibangun ulang di JS), supaya
+    // selalu sinkron dengan prompt yang dipakai generateDenganAI() (BBM/3M/Prosem).
+    const { data } = await api.post('/guru/ai/preview-prompt', {
+      bab_atau_materi: form.value.bab_atau_materi,
+      plotting_id: plottingId.value,
+      tujuan_pembelajaran_id: form.value.tujuan_pembelajaran_ids,
+    });
+
+    await navigator.clipboard.writeText(data.prompt_text);
+
     Swal.fire({
       icon: 'success',
       title: 'Prompt Berhasil Disalin!',
-      html: '<p style="font-size:14px">Silakan buka <b>ChatGPT / Gemini / Claude</b>, lalu <b>Paste</b> di sana. Hasilnya dijamin lebih simpel!</p>',
+      html: '<p style="font-size:14px">Silakan buka <b>ChatGPT / Gemini / Claude</b>, lalu <b>Paste</b> di sana.</p>',
       confirmButtonColor: '#1565c0',
       confirmButtonText: 'Buka AI & Paste!'
     });
-  } catch (err) {
-    console.error('Gagal copy text: ', err);
-    Swal.fire({ icon: 'error', title: 'Gagal Menyalin', text: 'Browser Anda mungkin tidak mengizinkan aksi copy otomatis.' });
+  } catch (error) {
+    console.error(error);
+    const pesan = error.response?.data?.message || 'Gagal menyiapkan prompt. Coba lagi.';
+    Swal.fire({ icon: 'error', title: 'Gagal', text: pesan });
+  } finally {
+    isCopyingPrompt.value = false;
   }
 };
 

@@ -31,7 +31,7 @@
           </div>
           
           <div class="form-group">
-            <label>Pertemuan Ke- <span class="text-danger">*</span></label>
+            <label>Pertemuan <span class="text-danger">*</span></label>
             <input v-model="form.pertemuan_ke" type="text" class="input-text" required placeholder="Contoh: 1 dari 3" />
           </div>
 

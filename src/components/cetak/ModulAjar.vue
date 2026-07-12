@@ -20,7 +20,7 @@
             <tr><td class="cell-label bold-text">Bab / Materi</td><td class="cell-separator">:</td><td class="bold-text">{{ modul.bab_atau_materi }}</td></tr>
             <tr><td class="cell-label bold-text">Fase / Kelas</td><td class="cell-separator">:</td><td>{{ guru?.fase || 'F' }} / {{ guru?.kelas || '-' }}</td></tr>
             <tr><td class="cell-label bold-text">Alokasi Waktu</td><td class="cell-separator">:</td><td>{{ modul.alokasi_waktu }}</td></tr>
-            <tr><td class="cell-label bold-text">Jumlah Peretemuan</td><td class="cell-separator">:</td><td>{{ modul.pertemuan_ke }} x pertemuan</td></tr>
+            <tr><td class="cell-label bold-text">Peretemuan</td><td class="cell-separator">:</td><td>{{ modul.pertemuan_ke }} pertemuan</td></tr>
           </tbody>
         </table>
 
