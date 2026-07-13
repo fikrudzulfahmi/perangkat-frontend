@@ -25,7 +25,7 @@
         </table>
 
         <div class="sub-section">
-          <h4 class="sub-title">1. Profil Lulusan</h4>
+          <h4 class="sub-title">1. Dimensi Profil Lulusan</h4>
           <ul class="profil-lulusan-list">
             <li v-for="(pp, i) in modul.profil_pancasila" :key="i">
               <span class="bold-text">{{ pp }}</span>
