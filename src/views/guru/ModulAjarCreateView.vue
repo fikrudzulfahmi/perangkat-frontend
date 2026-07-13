@@ -386,6 +386,7 @@ const isSaving = ref(false);
 const isGeneratingAI = ref(false);
 const plottingId = ref(route.query.plotting_id || '');
 const mapelId = ref(route.query.mapel_id || '');
+const guruId = ref('')
 
 const listCp = ref([]);
 const opsiTp = ref([]);
@@ -464,6 +465,17 @@ const togglePancasila = (profil) => {
   else form.value.profil_pancasila.push(profil);
 };
 
+const fetchGuruData = async () => {
+  try {
+    const response = await api.get('/user') 
+    
+    // Axios otomatis mem-parse JSON ke dalam response.data
+    guruId.value = response.data.id
+  } catch (error) {
+    console.error('Gagal mengambil data profil guru:', error)
+  }
+}
+
 // --- FUNGSI TAHAP 1: BUKA MODAL & AMBIL DATA TAHUN AJARAN ---
 const bukaModalClone = async () => {
   showModalClone.value = true;
@@ -495,6 +507,7 @@ const onTahunAjaranChange = async () => {
   try {
     const response = await api.get('/guru/modul-ajar', {
       params: { 
+        guru_id: guruId.value,
         mapel_id: mapelId.value,
         tahun_ajaran_id: selectedTahunAjaranId.value 
       }
@@ -769,6 +782,8 @@ onMounted(() => {
   } else {
     muatDataPendukung();
   }
+
+  fetchGuruData()
 });
 </script>
 
