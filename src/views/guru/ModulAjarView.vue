@@ -13,27 +13,21 @@
       </div>
     </div>
 
-    <div class="card-box margin-top-25">
-      <div style="margin-bottom: 15px;">
-        <h3 style="margin: 0; color: #1E5631;"><i class="fa-solid fa-filter"></i> Tugas Mengajar</h3>
-        <p style="margin: 4px 0 0 0; color: #666; font-size: 13px;">Pilih mata pelajaran untuk melihat data daftar Modul Ajar / RPP.</p>
-      </div>
-      
-      <div class="filter-wrapper">
-       <div class="filter-item">
-          <label class="filter-label">Mata Pelajaran & Kelas:</label>
-          <select v-model="selectedPlotting" @change="onPlottingChange" class="input-text-select">
-            <option value="">-- Tampilkan Semua Mata Pelajaran --</option>
-            <option v-for="plot in listPlotting" :key="plot.id" :value="plot.id">
-              {{ plot.mapel }} ({{ formatArrayKelas(plot.list_kelas) }})
-            </option>
-          </select>
-        </div>
-        </div>
+    <div class="card-box filter-card">
+      <label class="filter-label">
+        <i class="fa-solid fa-filter"></i> Pilih Tugas Mengajar:
+      </label>
+      <select v-model="selectedPlotting" @change="onPlottingChange" class="input-filter-select">
+        <option value="">-- Tampilkan Semua Mata Pelajaran --</option>
+        <option v-for="plot in listPlotting" :key="plot.id" :value="plot.id">
+          {{ plot.mapel }} ({{ formatArrayKelas(plot.list_kelas) }})
+        </option>
+      </select>
     </div>
 
-    <div v-if="!selectedPlotting" class="empty-state margin-top-25">
-      <i class="fa-solid fa-hand-pointer empty-icon"></i>
+    <div v-if="!selectedPlotting" class="card-box empty-state-alert margin-top-25">
+      <i class="fa-solid fa-hand-pointer alert-icon-info"></i>
+      <h3>Pilih Tugas Mengajar</h3>
       <p>Silakan pilih tugas mengajar di atas untuk menampilkan data Modul Ajar.</p>
     </div>
 
@@ -324,22 +318,25 @@ onMounted(() => {
 
 <style scoped>
 .content-body { padding: 30px; background-color: #fcf8f2; min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-.card-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.card-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid #FFE0B2; }
 .margin-top-25 { margin-top: 25px; }
 
 /* Header */
-.header-modul-box { background: #1E5631; color: white; padding: 20px 30px; }
+.header-modul-box { background: linear-gradient(135deg, #1E5631 0%, #689F38 100%); color: white; padding: 20px 30px; }
 .header-flex { display: flex; align-items: center; gap: 20px; }
-.btn-back { background: #689F38; border: none; color: white; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+.btn-back { background: #689F38; border: none; color: white; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: 0.2s; }
 .btn-back:hover { background: #FBC02D; color: #1E5631; }
 .meta-info h2 { margin: 0 0 6px 0; color: #FBC02D; font-size: 20px; }
 .meta-info p { margin: 0; color: #FFE0B2; font-size: 14px; }
 
-/* Filter Section */
-.filter-wrapper { display: flex; gap: 20px; flex-wrap: wrap; background: #f9fbe7; padding: 15px; border-radius: 8px; border: 1px solid #c5e1a5; margin-top: 10px; }
-.filter-item { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 250px; }
-.filter-label { font-weight: bold; color: #558b2f; font-size: 14px; }
-.input-text-select { padding: 10px; border-radius: 5px; border: 1px solid #ccc; outline: none; background: white; font-size: 14px; }
+/* Filter Card (disamakan dengan AtpView/KktpView/ProsemView) */
+.filter-card { border-top: 4px solid #FBC02D; background-color: #FFFDE7; }
+.filter-label { display: block; font-weight: bold; color: #1E5631; margin-bottom: 10px; font-size: 14.5px; }
+.input-filter-select { width: 100%; max-width: 500px; height: 45px; padding: 0 15px; font-size: 15px; border: 2px solid #689F38; border-radius: 6px; outline: none; background: white; font-weight: 500; cursor: pointer; color: #333; }
+
+/* Empty state alert (disamakan dengan AtpView) */
+.empty-state-alert { text-align: center; padding: 50px; color: #777; border-top: 4px solid #B0BEC5; }
+.alert-icon-info { font-size: 50px; color: #689F38; margin-bottom: 15px; }
 
 /* Table Content */
 .section-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; margin-bottom: 20px; }

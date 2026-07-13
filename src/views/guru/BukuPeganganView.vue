@@ -373,11 +373,11 @@ onMounted(() => {
 
 <style scoped>
 .content-body { padding: 30px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fcf8f2; min-height: 100vh; }
-.card-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+.card-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid #FFE0B2; }
 .margin-top-25 { margin-top: 25px; }
 
 /* Header Khas */
-.header-buku-box { background: #1E5631; border-top: none; color: white; padding: 20px 30px; border-radius: 10px; }
+.header-buku-box { background: linear-gradient(135deg, #1E5631 0%, #689F38 100%); border-top: none; color: white; padding: 20px 30px; border-radius: 10px; }
 .header-flex { display: flex; align-items: center; gap: 20px; }
 .btn-back { background: #689F38; border: none; color: white; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: 0.2s; }
 .btn-back:hover { background: #FBC02D; color: #1E5631; }
@@ -413,7 +413,7 @@ onMounted(() => {
 
 /* Modal Styles */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-.modal-content { width: 500px; max-width: 90%; background: white; padding: 0; overflow: hidden; display: flex; flex-direction: column; animation: fadeIn 0.2s; }
+.modal-content { width: 500px; max-width: 90%; background: white; padding: 0; overflow: hidden; display: flex; flex-direction: column; margin-bottom: 0; animation: fadeIn 0.2s; }
 .modal-header { padding: 15px 20px; background: #1E5631; color: white; display: flex; justify-content: space-between; align-items: center; }
 .modal-header h3 { margin: 0; font-size: 18px; color: #FBC02D; }
 .btn-close-modal { background: none; border: none; color: white; font-size: 20px; cursor: pointer; }

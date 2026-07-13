@@ -8,13 +8,13 @@
         </button>
         <div class="meta-info">
           <h2>Kriteria Ketercapaian Tujuan Pembelajaran (KKTP)</h2>
-          <p v-if="mapelId && kelasId">Tentukan standar ketuntasan kompetensi berbasis pendekatan interval kualitatif.</p>
+          <p>Tentukan standar ketuntasan kompetensi berbasis pendekatan interval kualitatif.</p>
         </div>
       </div>
     </div>
 
    <div class="card-box margin-top-25 filter-card">
-      <label for="plottingSelect" class="filter-label" style="display: block; font-weight: bold; color: #1E5631; margin-bottom: 10px; font-size: 14.5px;">
+      <label for="plottingSelect" class="filter-label">
         <i class="fa-solid fa-sliders"></i> Pilih Tugas Mengajar (Plotting):
       </label>
       <select 
@@ -22,7 +22,6 @@
         v-model="selectedPlottingId" 
         @change="handlePlottingChange" 
         class="input-filter-select"
-        style="width: 100%; max-width: 500px; height: 45px; padding: 0 15px; font-size: 15px; border: 2px solid #689F38; border-radius: 6px; outline: none; background: white; font-weight: 500; cursor: pointer; color: #333;"
       >
         <option value="">-- Silakan Pilih Mapel & Kelas --</option>
         <option 
@@ -36,8 +35,9 @@
       </select>
     </div>
 
-    <div v-if="!mapelId || !kelasId" class="empty-state margin-top-25">
-      <i class="fa-solid fa-hand-pointer empty-icon"></i>
+    <div v-if="!mapelId || !kelasId" class="card-box empty-state-alert margin-top-25">
+      <i class="fa-solid fa-hand-pointer alert-icon-info"></i>
+      <h3>Pilih Tugas Mengajar</h3>
       <p>Silakan pilih tugas mengajar pada filter di atas untuk menampilkan data KKTP.</p>
     </div>
 
@@ -289,17 +289,26 @@ onMounted(() => {
 <style scoped>
 /* Styling menyesuaikan dengan tema Guru/Admin layout Agan */
 .content-body { padding: 30px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fcf8f2; min-height: 100vh; }
-.card-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+.card-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid #FFE0B2; }
 .margin-top-15 { margin-top: 15px; }
 .margin-top-25 { margin-top: 25px; }
 
 /* Header Box Khas AtpView */
-.header-kktp-box { background: #1E5631; border-top: none; color: white; padding: 20px 30px; border-radius: 10px; }
+.header-kktp-box { background: linear-gradient(135deg, #1E5631 0%, #689F38 100%); border-top: none; color: white; padding: 20px 30px; border-radius: 10px; }
 .header-flex { display: flex; align-items: center; gap: 20px; }
 .btn-back { background: #689F38; border: none; color: white; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: 0.2s; }
 .btn-back:hover { background: #FBC02D; color: #1E5631; }
 .meta-info h2 { margin: 0 0 6px 0; font-size: 20px; color: #FBC02D; }
 .meta-info p { margin: 0; color: #FFE0B2; font-size: 14px; }
+
+/* Filter Card (disamakan dengan AtpView) */
+.filter-card { border-top: 4px solid #FBC02D; background-color: #FFFDE7; }
+.filter-label { display: block; font-weight: bold; color: #1E5631; margin-bottom: 10px; font-size: 14.5px; }
+.input-filter-select { width: 100%; max-width: 500px; height: 45px; padding: 0 15px; font-size: 15px; border: 2px solid #689F38; border-radius: 6px; outline: none; background: white; font-weight: 500; cursor: pointer; color: #333; }
+
+/* Empty state alert (disamakan dengan AtpView) */
+.empty-state-alert { text-align: center; padding: 50px; color: #777; border-top: 4px solid #B0BEC5; }
+.alert-icon-info { font-size: 50px; color: #689F38; margin-bottom: 15px; }
 
 .section-header-kktp { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; margin-bottom: 25px; }
 .section-header-kktp h3 { margin: 0; color: #1E5631; font-size: 18px; font-weight: bold; }
@@ -334,8 +343,6 @@ onMounted(() => {
 
 .loading-state { text-align: center; padding: 50px; font-weight: bold; color: #1E5631; }
 .empty-state { text-align: center; padding: 50px; color: #666; }
-.empty-state-alert { text-align: center; padding: 40px; border-top: 5px solid #d9534f; }
-.alert-icon { font-size: 44px; color: #d9534f; margin-bottom: 12px; }
 .btn-submit-kktp { background-color: #FBC02D; color: #1E5631; border: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; transition: 0.2s; }
 .btn-submit-kktp:hover { background-color: #f9a825; }
 </style>

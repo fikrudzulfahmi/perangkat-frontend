@@ -12,11 +12,29 @@
       </div>
     </div>
 
-    <div class="card-box margin-top-25">
+    <div class="card-box filter-card">
+      <label class="filter-label">
+        <i class="fa-solid fa-filter"></i> Pilih Tugas Mengajar:
+      </label>
+      <select v-model="selectedPlottingId" @change="handlePlottingChange" class="input-filter-select">
+        <option value="">-- Pilih Mata Pelajaran & Kelas --</option>
+        <option v-for="plot in listPlotting" :key="plot.id" :value="plot.id">
+          {{ plot.mapel || plot.nama_mapel }} - Kelas {{ formatArrayKelas(plot.listKelas || plot.list_kelas || plot.kelas || []) }}
+        </option>
+      </select>
+    </div>
+
+    <div v-if="!selectedPlottingId" class="card-box empty-state-alert margin-top-25">
+      <i class="fa-solid fa-hand-pointer alert-icon-info"></i>
+      <h3>Pilih Tugas Mengajar</h3>
+      <p>Silakan pilih tugas mengajar pada filter di atas untuk menampilkan daftar Bank Soal.</p>
+    </div>
+
+    <div v-else class="card-box margin-top-25">
       <div class="section-header">
         <div>
           <h3><i class="fa-solid fa-list-check"></i> Daftar Soal</h3>
-          <p class="subtitle">Kumpulan soal berdasarkan Mata Pelajaran aktif.</p>
+          <p class="subtitle">{{ selectedPlottingNama }}</p>
         </div>
         
         <div class="action-buttons" style="display: flex; gap: 10px; flex-wrap: wrap;">
@@ -40,21 +58,8 @@
         </div>
       </div>
 
-      <div class="form-group" style="margin-bottom: 20px;">
-        <label style="font-weight: bold; color: #1E5631; display: block; margin-bottom: 8px;">
-          <i class="fa-solid fa-filter"></i> Filter Berdasarkan Tugas Mengajar:
-        </label>
-        <select v-model="selectedPlottingId" @change="handlePlottingChange" class="input-text" style="max-width: 500px;">
-          <option value="">-- Tampilkan Semua Mapel --</option>
-          <option v-for="plot in listPlotting" :key="plot.id" :value="plot.id">
-            {{ plot.mapel || plot.nama_mapel }} - Kelas {{ formatArrayKelas(plot.listKelas || plot.list_kelas || plot.kelas || []) }}
-          </option>
-        </select>
-      </div>
-
-      <div v-if="isLoading" style="text-align: center; padding: 40px;">
-        <i class="fa-solid fa-spinner fa-spin fa-2x" style="color: #689F38;"></i>
-        <p style="margin-top: 10px; color: #666;">Memuat data soal...</p>
+      <div v-if="isLoading" class="loading-state">
+        <i class="fa-solid fa-spinner fa-spin"></i> Memuat data soal...
       </div>
 
       <div v-else-if="listSoal.length === 0" class="empty-state">
@@ -67,9 +72,8 @@
         <thead>
           <tr>
             <th width="5%">No</th>
-            <th width="15%">Mata Pelajaran</th>
             <th width="15%">Tipe & Asesmen</th>
-            <th width="45%">Pertanyaan / Instruksi</th>
+            <th width="70%">Pertanyaan / Instruksi</th>
             <th width="10%">Aksi</th>
           </tr>
         </thead>
@@ -77,16 +81,18 @@
           <tr v-for="(soal, index) in listSoal" :key="soal.id">
             <td style="text-align: center;">{{ index + 1 }}</td>
             <td>
-              <strong>{{ soal.plotting?.mapel?.nama_mapel || soal.mapel || 'Mapel tidak diketahui' }}</strong><br>
-            </td>
-            <td>
               <span class="badge-jenis">{{ soal.tipe_soal }}</span><br>
               <span class="badge-level" :class="'bg-' + (soal.tingkat_kesulitan ? soal.tingkat_kesulitan.toLowerCase() : 'sedang')">
                 {{ soal.tingkat_kesulitan }}
               </span>
             </td>
             <td>
-              <div class="text-truncate-multiline">{{ soal.pertanyaan }}</div>
+              <div class="text-truncate-multiline">
+                <span v-if="tpMap[soal.tp_id]" class="tp-code-badge">
+                  {{ tpMap[soal.tp_id] }}
+                </span>
+                {{ soal.pertanyaan }}
+              </div>
             </td>
             <td>
               <div class="action-buttons">
@@ -199,7 +205,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '../../services/api';
 import Swal from 'sweetalert2';
@@ -213,6 +219,7 @@ const isLoading = ref(false);
 const isUploading = ref(false);
 const selectedPlottingId = ref('');
 const fileInput = ref(null);
+const tpMap = ref({}); // 🟢 Lookup: { [tp_id]: 'DD3-2.1' } untuk menampilkan Kode TP di tabel
 
 // === STATE MODAL KLONING ===
 const showModalKloning = ref(false);
@@ -248,6 +255,18 @@ const kembaliKeDashboard = () => {
   router.push({ name: 'guru.dashboard' });
 };
 
+// 🟢 Objek plotting yang sedang aktif dipilih, jadi sumber tunggal untuk nama mapel & mapel_id
+const selectedPlottingObj = computed(() =>
+  listPlotting.value.find(p => String(p.id) === String(selectedPlottingId.value)) || null
+);
+
+const selectedPlottingNama = computed(() => {
+  if (!selectedPlottingObj.value) return '';
+  const p = selectedPlottingObj.value;
+  const kelas = formatArrayKelas(p.listKelas || p.list_kelas || p.kelas || []);
+  return `${p.mapel || p.nama_mapel} - Kelas ${kelas}`;
+});
+
 // === FUNGSI UTAMA (LIST SOAL & EXCEL) ===
 const muatPlotting = async () => {
   try {
@@ -264,6 +283,7 @@ const muatSoal = async () => {
     const params = selectedPlottingId.value ? { plotting_id: selectedPlottingId.value } : {};
     const res = await api.get('/guru/bank-soal', { params });
     listSoal.value = res.data.data || res.data || [];
+    console.log('DEBUG - contoh data soal:', listSoal.value[0]); // 🟡 hapus setelah selesai debug
   } catch (error) {
     Toast.fire({ icon: 'error', title: 'Gagal memuat daftar soal.' });
   } finally {
@@ -271,12 +291,42 @@ const muatSoal = async () => {
   }
 };
 
+// 🟢 Ambil daftar Kode TP untuk mapel dari plotting yang sedang dipilih,
+// lalu di-flatten jadi lookup { [tp_id]: kode_tp } agar cepat dicocokkan di tabel.
+const muatKodeTp = async () => {
+  tpMap.value = {};
+  const mapelId = selectedPlottingObj.value?.mapel_id;
+  if (!mapelId) return;
+
+  try {
+    const res = await api.get('/guru/capaian-pembelajaran', { params: { mapel_id: mapelId } });
+    const listCp = res.data.data || res.data || [];
+
+    const map = {};
+    listCp.forEach(cp => {
+      (cp.list_tp || []).forEach(tp => {
+        map[tp.id] = tp.kode_tp;
+      });
+    });
+    tpMap.value = map;
+    console.log('DEBUG - tpMap:', map); // 🟡 hapus setelah selesai debug
+  } catch (error) {
+    console.error("Gagal memuat daftar kode TP", error);
+  }
+};
+
 const handlePlottingChange = () => {
+  if (!selectedPlottingId.value) {
+    listSoal.value = [];
+    tpMap.value = {};
+    return;
+  }
   muatSoal();
+  muatKodeTp();
 };
 
 const tambahSoalManual = () => {
-  router.push({ name: 'guru.bank-soal.tambah' });
+  router.push({ name: 'guru.bank-soal.create' });
 };
 
 const editSoal = (id) => {
@@ -301,8 +351,21 @@ const hapusSoal = async (id) => {
 };
 
 const unduhTemplateExcel = async () => {
+  if (!selectedPlottingId.value) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Pilih Tugas Mengajar Dulu',
+      text: 'Silakan pilih tugas mengajar pada filter di atas sebelum mengunduh template.',
+      confirmButtonColor: '#1E5631'
+    });
+    return;
+  }
+
   try {
-    const response = await api.get('/guru/bank-soal/template', { responseType: 'blob' });
+    const response = await api.get('/guru/bank-soal/template', {
+      params: { plotting_id: selectedPlottingId.value },
+      responseType: 'blob'
+    });
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
@@ -316,6 +379,15 @@ const unduhTemplateExcel = async () => {
 };
 
 const triggerUpload = () => {
+  if (!selectedPlottingId.value) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Pilih Tugas Mengajar Dulu',
+      text: 'Silakan pilih tugas mengajar pada filter di atas sebelum upload Excel.',
+      confirmButtonColor: '#1E5631'
+    });
+    return;
+  }
   fileInput.value.click();
 };
 
@@ -326,6 +398,7 @@ const prosesUploadExcel = async (event) => {
   isUploading.value = true;
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('plotting_id', selectedPlottingId.value);
 
   try {
     const res = await api.post('/guru/bank-soal/upload', formData, {
@@ -434,7 +507,8 @@ const prosesKloningSelektif = async () => {
     
     // Auto-pilih dropdown utama ke mapel yang baru saja dituju
     selectedPlottingId.value = filterClone.value.targetPlottingId;
-    muatSoal(); 
+    muatSoal();
+    muatKodeTp();
     
   } catch (error) {
     Swal.fire('Gagal!', 'Terjadi kesalahan saat menyalin soal.', 'error');
@@ -445,26 +519,33 @@ const prosesKloningSelektif = async () => {
 
 onMounted(() => {
   muatPlotting();
-  muatSoal();
 });
 </script>
 
 <style scoped>
 /* ================= GLOBAL & HEADER ================= */
-.content-body { padding: 30px; background-color: #fcf8f2; min-height: 100vh; font-family: 'Segoe UI', Tahoma, sans-serif; }
-.card-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.content-body { padding: 30px; background-color: #fcf8f2; min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.card-box { background-color: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid #FFE0B2; }
 .margin-top-25 { margin-top: 25px; }
 
-.header-buku-box { background: #1E5631; color: white; padding: 20px 30px; }
+.header-buku-box { background: linear-gradient(135deg, #1E5631 0%, #689F38 100%); color: white; padding: 20px 30px; }
 .header-flex { display: flex; gap: 20px; align-items: center; }
 .btn-back { background: #689F38; border: none; color: white; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px;}
 .btn-back:hover { background: #FBC02D; color: #1E5631; }
-.meta-info h2 { margin: 0 0 6px 0; color: #FBC02D; font-size: 22px; }
+.meta-info h2 { margin: 0 0 6px 0; color: #FBC02D; font-size: 20px; }
 .meta-info p { margin: 0; color: #FFE0B2; font-size: 14px; }
 
 .section-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e0e0e0; padding-bottom: 15px; margin-bottom: 20px; }
 .section-header h3 { margin: 0; color: #1E5631; }
 .subtitle { margin: 6px 0 0 0; color: #666; font-size: 13.5px; }
+
+/* Filter Card (disamakan dengan AtpView/KktpView/ModulAjarView/ProsemView) */
+.filter-card { border-top: 4px solid #FBC02D; background-color: #FFFDE7; }
+.filter-label { display: block; font-weight: bold; color: #1E5631; margin-bottom: 10px; font-size: 14.5px; }
+.input-filter-select { width: 100%; max-width: 500px; height: 45px; padding: 0 15px; font-size: 15px; border: 2px solid #689F38; border-radius: 6px; outline: none; background: white; font-weight: 500; cursor: pointer; color: #333; }
+
+.empty-state-alert { text-align: center; padding: 50px; color: #777; border-top: 4px solid #B0BEC5; }
+.alert-icon-info { font-size: 50px; color: #689F38; margin-bottom: 15px; }
 
 .btn-add { background-color: #1E5631; color: white; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;}
 .btn-add:hover { background: #143d22; }
@@ -482,7 +563,8 @@ onMounted(() => {
 .table-custom { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0; }
 .table-custom th { background-color: #689F38; color: white; padding: 14px 15px; font-size: 14px; text-align: left; }
 .table-custom td { padding: 14px 15px; border-bottom: 1px solid #eee; font-size: 14px; color: #333; vertical-align: top; }
-.empty-state { text-align: center; padding: 40px; color: #777; border: 1px dashed #ccc; border-radius: 8px; }
+.loading-state { text-align: center; padding: 50px; font-weight: bold; color: #1E5631; }
+.empty-state { text-align: center; padding: 50px; color: #666; }
 
 .badge-jenis { background: #e3f2fd; color: #1565c0; font-size: 12px; font-weight: bold; padding: 4px 8px; border-radius: 4px; border: 1px solid #bbdefb; }
 .badge-level { font-size: 11px; font-weight: bold; padding: 4px 10px; border-radius: 20px; display: inline-block; margin-top: 5px; }
@@ -490,6 +572,7 @@ onMounted(() => {
 .bg-sedang { background: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; }
 .bg-sulit { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
 .text-truncate-multiline { font-size: 13.5px; line-height: 1.4; max-height: 60px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+.tp-code-badge { background: #eee; font-weight: bold; padding: 2px 5px; border-radius: 3px; font-size: 11px; color: #333; margin-right: 4px; }
 
 .action-buttons { display: flex; gap: 8px; }
 .btn-icon { border: none; padding: 8px 10px; border-radius: 4px; cursor: pointer; transition: 0.2s; color: white; }
@@ -500,7 +583,7 @@ onMounted(() => {
 
 /* ================= MODAL KLONING SELEKTIF ================= */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-.modal-content { background: white; padding: 0; overflow: hidden; display: flex; flex-direction: column; border-radius: 8px; animation: fadeIn 0.2s; }
+.modal-content { background: white; padding: 0; overflow: hidden; display: flex; flex-direction: column; border-radius: 8px; margin-bottom: 0; animation: fadeIn 0.2s; }
 .modal-lg { width: 850px; max-width: 95%; max-height: 90vh; }
 .modal-header-custom { padding: 15px 20px; background: #0288D1; color: white; display: flex; justify-content: space-between; align-items: center; }
 .modal-header-custom h3 { margin: 0; font-size: 18px; color: white; display: flex; align-items: center; gap: 8px; }

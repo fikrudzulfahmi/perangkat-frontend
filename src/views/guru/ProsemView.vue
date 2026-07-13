@@ -8,25 +8,24 @@
         </button>
         <div class="meta-info">
           <h2>Program Tahunan (Prota) & Program Semester (Prosem)</h2>
-          <p v-if="selectedPlot">Kelola alokasi distribusi jam pelajaran (JP) per minggu secara efektif.</p>
+          <p>Kelola alokasi distribusi jam pelajaran (JP) per minggu secara efektif.</p>
         </div>
       </div>
     </div>
 
-    <div class="card-box margin-top-25">
-      <div style="margin-bottom: 15px;">
-        <h3 style="margin: 0; color: #1E5631;"><i class="fa-solid fa-filter"></i> Pilih Tugas Mengajar (Plotting)</h3>
-        <p style="margin: 4px 0 0 0; color: #666; font-size: 13px;">Silakan pilih kelas dan mata pelajaran terlebih dahulu.</p>
-      </div>
-     <select v-model="selectedPlot" @change="onPlotChange" class="input-prosem-select">
+    <div class="card-box filter-card">
+      <label class="filter-label">
+        <i class="fa-solid fa-filter"></i> Pilih Tugas Mengajar (Plotting)
+      </label>
+      <select v-model="selectedPlot" @change="onPlotChange" class="input-filter-select">
         <option :value="null">-- Pilih Mata Pelajaran & Kelas --</option>
         <option v-for="plot in listPlotting" :key="plot.id" :value="plot.id">
-          {{ plot.mapel || plot.nama_mapel }} - Kelas {{ formatArrayKelas(plot.listKelas || plot.kelas || []) }}
+          {{ plot.mapel || plot.nama_mapel }} - Kelas {{ formatArrayKelas(plot.listKelas || plot.list_kelas || plot.kelas || []) }}
         </option>
       </select>
     </div>
 
-    <div v-if="selectedPlot && !isLoading" class="margin-top-25">
+    <div v-if="selectedPlot && !isLoading">
       
       <div class="card-box">
         <div class="section-title-flex">
@@ -72,7 +71,7 @@
         </div>
       </div>
 
-      <div class="card-box margin-top-25">
+      <div class="card-box">
         <div class="section-title-flex">
           <div>
             <h3 class="title-green"><i class="fa-solid fa-calendar-days"></i> II. Matriks Distribusi Program Semester (Prosem)</h3>
@@ -175,7 +174,7 @@
 
     </div>
 
-    <div v-if="isLoading" class="card-box text-center margin-top-25" style="padding: 4px 0;">
+    <div v-if="isLoading" class="card-box text-center" style="padding: 4px 0;">
        <p style="color: #666;"><i class="fa-solid fa-spinner fa-spin"></i> Memuat Struktur Data Prota & Prosem...</p>
     </div>
 
@@ -605,8 +604,8 @@ export default {
 </script>
 
 <style scoped>
-.content-body { padding: 20px; font-family: 'Segoe UI', sans-serif; }
-.card-box { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #ebdcc5; }
+.content-body { padding: 30px; background-color: #fcf8f2; min-height: 100vh; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+.card-box { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid #FFE0B2; }
 .margin-top-25 { margin-top: 25px; }
 .margin-top-20 { margin-top: 20px; }
 .margin-top-15 { margin-top: 15px; }
@@ -615,12 +614,17 @@ export default {
 .font-sm { font-size: 13px; }
 .text-green { color: #1E5631; }
 
-.header-prosem-box { background: linear-gradient(135deg, #1E5631 0%, #4C9A2A 100%); color: white; border: none; }
+.header-prosem-box { background: linear-gradient(135deg, #1E5631 0%, #689F38 100%); color: white; border: none; padding: 20px 30px; }
 .header-flex { display: flex; align-items: center; gap: 20px; }
-.btn-back { background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); color: white; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: 500; transition: 0.2s; }
-.btn-back:hover { background: rgba(255, 255, 255, 0.3); }
-.meta-info h2 { margin: 0; font-size: 20px; font-weight: 600; }
-.meta-info p { margin: 5px 0 0 0; font-size: 13px; color: #e0f2f1; }
+.btn-back { background: #689F38; border: none; color: white; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 14px; transition: 0.2s; }
+.btn-back:hover { background: #FBC02D; color: #1E5631; }
+.meta-info h2 { margin: 0 0 6px 0; font-size: 20px; color: #FBC02D; }
+.meta-info p { margin: 0; color: #FFE0B2; font-size: 14px; }
+
+/* Filter Card (disamakan dengan AtpView/KktpView) */
+.filter-card { border-top: 4px solid #FBC02D; background-color: #FFFDE7; }
+.filter-label { display: block; font-weight: bold; color: #1E5631; margin-bottom: 10px; font-size: 14.5px; }
+.input-filter-select { width: 100%; max-width: 500px; height: 45px; padding: 0 15px; font-size: 15px; border: 2px solid #689F38; border-radius: 6px; outline: none; background: white; font-weight: 500; cursor: pointer; color: #333; }
 
 .input-prosem-select { width: 100%; max-width: 500px; padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; outline: none; transition: 0.2s; }
 .input-prosem-select:focus { border-color: #1E5631; box-shadow: 0 0 5px rgba(30, 86, 49, 0.2); }
@@ -635,7 +639,7 @@ export default {
 
 .table-responsive { width: 100%; overflow-x: auto; }
 .table-custom { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-.table-custom th { background-color: #1E5631; color: white; padding: 10px; font-weight: 600; border: 1px solid #143d22; }
+.table-custom th { background-color: #689F38; color: white; padding: 10px; font-weight: 600; border: 1px solid #558b2f; }
 .table-custom td { padding: 10px; border: 1px solid #e0e0e0; vertical-align: middle; }
 .table-custom tbody tr:hover { background-color: #fcfbf7; }
 
